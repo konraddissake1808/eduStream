@@ -17,11 +17,64 @@ export default async function DashboardPage() {
       {profile.role === "teacher" ? (
         <TeacherOverview teacherId={profile.id} />
       ) : (
-        <div className="mt-8 rounded-lg border border-neutral-200 p-6 text-sm text-neutral-600">
-          <p>Your enrolled courses and playlists will show up here.</p>
-        </div>
+        <StudentOverview studentId={profile.id} />
       )}
     </div>
+  );
+}
+
+type EnrollmentRow = {
+  id: string;
+  course: { id: string; title: string } | null;
+  playlist: { id: string; title: string } | null;
+};
+
+async function StudentOverview({ studentId }: { studentId: string }) {
+  const supabase = await createClient();
+
+  const { data } = await supabase
+    .from("enrollment")
+    .select("id, course(id, title), playlist(id, title)")
+    .eq("student_id", studentId)
+    .order("enrolled_at", { ascending: false });
+
+  const enrollments = (data ?? []) as unknown as EnrollmentRow[];
+
+  if (!enrollments.length) {
+    return (
+      <div className="mt-8 rounded-lg border border-neutral-200 p-6 text-sm text-neutral-600">
+        <p>
+          You haven&apos;t enrolled in anything yet.{" "}
+          <Link href="/courses" className="font-medium underline">
+            Browse courses
+          </Link>{" "}
+          or{" "}
+          <Link href="/playlists" className="font-medium underline">
+            browse playlists
+          </Link>
+          .
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <ul className="mt-8 divide-y divide-neutral-200 rounded-lg border border-neutral-200">
+      {enrollments.map((enrollment) => {
+        const item = enrollment.course
+          ? { href: `/courses/${enrollment.course.id}`, title: enrollment.course.title, kind: "Course" }
+          : { href: `/playlists/${enrollment.playlist!.id}`, title: enrollment.playlist!.title, kind: "Playlist" };
+
+        return (
+          <li key={enrollment.id} className="px-4 py-3">
+            <Link href={item.href} className="text-sm font-medium underline">
+              {item.title}
+            </Link>
+            <p className="mt-1 text-xs text-neutral-500">{item.kind}</p>
+          </li>
+        );
+      })}
+    </ul>
   );
 }
 

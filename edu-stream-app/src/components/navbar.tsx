@@ -8,9 +8,20 @@ export default async function Navbar() {
 
   return (
     <nav className="flex h-16 w-full items-center justify-between border-b border-neutral-200 px-6">
-      <Link href="/" className="text-lg font-semibold">
-        eduStream
-      </Link>
+      <div className="flex items-center gap-6">
+        <Link href="/" className="text-lg font-semibold">
+          eduStream
+        </Link>
+        <Link href="/courses" className="text-sm font-medium text-neutral-600">
+          Courses
+        </Link>
+        <Link
+          href="/playlists"
+          className="text-sm font-medium text-neutral-600"
+        >
+          Playlists
+        </Link>
+      </div>
 
       {user ? (
         <div className="flex items-center gap-4">
