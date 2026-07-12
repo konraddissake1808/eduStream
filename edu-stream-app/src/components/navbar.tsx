@@ -1,23 +1,10 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { getAuthUser, getProfile } from "@/lib/supabase/dal";
 import { logout } from "@/app/auth/actions";
 
 export default async function Navbar() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  let profile: { full_name: string | null; role: string } | null = null;
-
-  if (user) {
-    const { data } = await supabase
-      .from("profiles")
-      .select("full_name, role")
-      .eq("id", user.id)
-      .single();
-    profile = data;
-  }
+  const user = await getAuthUser();
+  const profile = user ? await getProfile() : null;
 
   return (
     <nav className="flex h-16 w-full items-center justify-between border-b border-neutral-200 px-6">
@@ -27,6 +14,9 @@ export default async function Navbar() {
 
       {user ? (
         <div className="flex items-center gap-4">
+          <Link href="/dashboard" className="text-sm font-medium">
+            Dashboard
+          </Link>
           <span className="text-sm text-neutral-600">
             {profile?.full_name ?? user.email}
             {profile?.role && (

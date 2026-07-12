@@ -1,11 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { Suspense, useActionState } from "react";
+import { useSearchParams } from "next/navigation";
 import { login } from "./actions";
 
 export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
+  );
+}
+
+function LoginForm() {
   const [state, action, pending] = useActionState(login, undefined);
+  const next = useSearchParams().get("next") ?? "";
 
   return (
     <div className="flex flex-1 items-center justify-center px-4 py-16">
@@ -16,6 +26,8 @@ export default function LoginPage() {
         </p>
 
         <form action={action} className="mt-8 flex flex-col gap-4">
+          <input type="hidden" name="next" value={next} />
+
           <div className="flex flex-col gap-1">
             <label htmlFor="email" className="text-sm font-medium">
               Email

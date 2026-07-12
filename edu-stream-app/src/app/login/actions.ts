@@ -23,5 +23,6 @@ export async function login(
     return { error: error.message };
   }
 
-  redirect("/");
+  const next = formData.get("next");
+  redirect(typeof next === "string" && next.startsWith("/") ? next : "/");
 }
