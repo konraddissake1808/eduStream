@@ -1,0 +1,70 @@
+import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
+import { requireTeacher } from "@/lib/supabase/dal";
+
+type CourseRow = {
+  id: string;
+  title: string;
+  price: number;
+  is_published: boolean;
+  category: { name: string } | null;
+};
+
+export default async function CoursesPage() {
+  const teacher = await requireTeacher("/dashboard/courses");
+  const supabase = await createClient();
+
+  const { data } = await supabase
+    .from("course")
+    .select("id, title, price, is_published, category(name)")
+    .eq("teacher_id", teacher.id)
+    .order("created_at", { ascending: false });
+
+  const courses = (data ?? []) as unknown as CourseRow[];
+
+  return (
+    <div className="mx-auto w-full max-w-3xl px-4 py-12">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold">Your courses</h1>
+        <Link
+          href="/dashboard/courses/new"
+          className="rounded-md bg-black px-3 py-1.5 text-sm font-medium text-white"
+        >
+          New course
+        </Link>
+      </div>
+
+      {!courses?.length ? (
+        <p className="mt-8 text-sm text-neutral-500">
+          You haven&apos;t created any courses yet.
+        </p>
+      ) : (
+        <ul className="mt-8 divide-y divide-neutral-200 rounded-lg border border-neutral-200">
+          {courses.map((course) => (
+            <li
+              key={course.id}
+              className="flex items-center justify-between px-4 py-3"
+            >
+              <div>
+                <p className="text-sm font-medium">{course.title}</p>
+                <p className="text-xs text-neutral-500">
+                  {course.category?.name ?? "Uncategorized"} ·{" "}
+                  {course.price > 0 ? `$${course.price}` : "Free"}
+                </p>
+              </div>
+              <span
+                className={`rounded-full px-2 py-0.5 text-xs ${
+                  course.is_published
+                    ? "bg-green-100 text-green-700"
+                    : "bg-neutral-100 text-neutral-500"
+                }`}
+              >
+                {course.is_published ? "Published" : "Draft"}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}

@@ -37,3 +37,23 @@ export async function requireProfile(nextPath?: string) {
 
   return profile;
 }
+
+export async function requireTeacher(nextPath?: string) {
+  const profile = await requireProfile(nextPath);
+
+  if (profile.role !== "teacher") {
+    redirect("/dashboard");
+  }
+
+  return profile;
+}
+
+export const getCategories = cache(async () => {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("category")
+    .select("id, name")
+    .order("name");
+
+  return data ?? [];
+});
