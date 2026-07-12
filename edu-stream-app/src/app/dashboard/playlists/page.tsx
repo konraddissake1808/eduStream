@@ -52,15 +52,23 @@ export default async function PlaylistsPage() {
                   {playlist.price > 0 ? `$${playlist.price}` : "Free"}
                 </p>
               </div>
-              <span
-                className={`rounded-full px-2 py-0.5 text-xs ${
-                  playlist.is_published
-                    ? "bg-green-100 text-green-700"
-                    : "bg-neutral-100 text-neutral-500"
-                }`}
-              >
-                {playlist.is_published ? "Published" : "Draft"}
-              </span>
+              <div className="flex items-center gap-3">
+                <span
+                  className={`rounded-full px-2 py-0.5 text-xs ${
+                    playlist.is_published
+                      ? "bg-green-100 text-green-700"
+                      : "bg-neutral-100 text-neutral-500"
+                  }`}
+                >
+                  {playlist.is_published ? "Published" : "Draft"}
+                </span>
+                <Link
+                  href={`/dashboard/playlists/${playlist.id}/edit`}
+                  className="text-sm font-medium underline"
+                >
+                  Edit
+                </Link>
+              </div>
             </li>
           ))}
         </ul>
