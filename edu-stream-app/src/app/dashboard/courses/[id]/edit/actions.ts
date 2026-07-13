@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { requireTeacher } from "@/lib/supabase/dal";
+import { requireContentCreator } from "@/lib/supabase/dal";
 
 export type EditCourseState = { error: string } | undefined;
 
@@ -11,7 +11,7 @@ export async function updateCourse(
   _prevState: EditCourseState,
   formData: FormData
 ): Promise<EditCourseState> {
-  const teacher = await requireTeacher(`/dashboard/courses/${courseId}/edit`);
+  await requireContentCreator(`/dashboard/courses/${courseId}/edit`);
 
   const title = formData.get("title");
   const description = formData.get("description");
@@ -49,10 +49,10 @@ export async function updateCourse(
       price,
       is_published: publish,
     })
-    // Scoping to teacher_id (in addition to RLS) ensures a not-found/foreign
-    // id fails loudly here instead of silently updating zero rows.
+    // No app-level ownership filter here: RLS allows the original teacher
+    // *or* a fellow institution-member teacher to update it. A course that
+    // isn't visible to this user simply won't match, giving 0 rows below.
     .eq("id", courseId)
-    .eq("teacher_id", teacher.id)
     .select("id")
     .single();
 

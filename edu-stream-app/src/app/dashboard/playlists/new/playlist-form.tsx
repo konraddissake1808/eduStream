@@ -4,8 +4,15 @@ import { useActionState } from "react";
 import { createPlaylist } from "../actions";
 
 type Category = { id: string; name: string };
+type Institution = { id: string; full_name: string | null };
 
-export function PlaylistForm({ categories }: { categories: Category[] }) {
+export function PlaylistForm({
+  categories,
+  institutions,
+}: {
+  categories: Category[];
+  institutions: Institution[];
+}) {
   const [state, action, pending] = useActionState(createPlaylist, undefined);
 
   return (
@@ -80,6 +87,27 @@ export function PlaylistForm({ categories }: { categories: Category[] }) {
           className="rounded-md border border-neutral-300 px-3 py-2 text-sm"
         />
       </div>
+
+      {institutions.length > 0 && (
+        <div className="flex flex-col gap-1">
+          <label htmlFor="institutionId" className="text-sm font-medium">
+            Post as
+          </label>
+          <select
+            id="institutionId"
+            name="institutionId"
+            defaultValue=""
+            className="rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          >
+            <option value="">Myself</option>
+            {institutions.map((institution) => (
+              <option key={institution.id} value={institution.id}>
+                {institution.full_name ?? "Institution"}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       <label className="flex items-center gap-2 text-sm">
         <input type="checkbox" name="publish" />

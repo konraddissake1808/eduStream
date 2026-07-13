@@ -27,7 +27,7 @@ export async function signup(
     typeof password !== "string" ||
     !password ||
     typeof confirmPassword !== "string" ||
-    (role !== "teacher" && role !== "student")
+    (role !== "teacher" && role !== "student" && role !== "institution")
   ) {
     return { error: "Please fill in all fields." };
   }

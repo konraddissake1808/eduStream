@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { requireProfile } from "@/lib/supabase/dal";
+import { requireProfile, getMyInstitutionMemberships } from "@/lib/supabase/dal";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function DashboardPage() {
@@ -14,10 +14,13 @@ export default async function DashboardPage() {
         {profile.role} dashboard
       </p>
 
-      {profile.role === "teacher" ? (
-        <TeacherOverview teacherId={profile.id} />
-      ) : (
+      {profile.role === "student" ? (
         <StudentOverview studentId={profile.id} />
+      ) : (
+        <TeacherOverview
+          teacherId={profile.id}
+          role={profile.role}
+        />
       )}
     </div>
   );
@@ -78,19 +81,34 @@ async function StudentOverview({ studentId }: { studentId: string }) {
   );
 }
 
-async function TeacherOverview({ teacherId }: { teacherId: string }) {
+async function TeacherOverview({
+  teacherId,
+  role,
+}: {
+  teacherId: string;
+  role: "teacher" | "institution";
+}) {
   const supabase = await createClient();
+
+  const institutionIds =
+    role === "institution"
+      ? [teacherId]
+      : (await getMyInstitutionMemberships()).map((m) => m.institution.id);
+
+  const orFilter = institutionIds.length
+    ? `teacher_id.eq.${teacherId},institution_id.in.(${institutionIds.join(",")})`
+    : `teacher_id.eq.${teacherId}`;
 
   const [{ count: courseCount }, { count: playlistCount }] =
     await Promise.all([
       supabase
         .from("course")
         .select("id", { count: "exact", head: true })
-        .eq("teacher_id", teacherId),
+        .or(orFilter),
       supabase
         .from("playlist")
         .select("id", { count: "exact", head: true })
-        .eq("teacher_id", teacherId),
+        .or(orFilter),
     ]);
 
   return (
@@ -112,6 +130,26 @@ async function TeacherOverview({ teacherId }: { teacherId: string }) {
         <p className="mt-1 text-2xl font-semibold">{playlistCount ?? 0}</p>
         <p className="mt-2 text-sm font-medium">Manage playlists &rarr;</p>
       </Link>
+
+      {role === "institution" ? (
+        <Link
+          href="/dashboard/institution"
+          className="rounded-lg border border-neutral-200 p-6 hover:border-neutral-400"
+        >
+          <p className="text-sm text-neutral-500">Teacher members</p>
+          <p className="mt-2 text-sm font-medium">Manage members &rarr;</p>
+        </Link>
+      ) : (
+        <Link
+          href="/dashboard/my-institutions"
+          className="rounded-lg border border-neutral-200 p-6 hover:border-neutral-400"
+        >
+          <p className="text-sm text-neutral-500">Institutions</p>
+          <p className="mt-2 text-sm font-medium">
+            Join or leave institutions &rarr;
+          </p>
+        </Link>
+      )}
     </div>
   );
 }

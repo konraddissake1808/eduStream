@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { requireTeacher } from "@/lib/supabase/dal";
+import { requireContentCreator } from "@/lib/supabase/dal";
 
 export type EditPlaylistState = { error: string } | undefined;
 
@@ -11,9 +11,7 @@ export async function updatePlaylist(
   _prevState: EditPlaylistState,
   formData: FormData
 ): Promise<EditPlaylistState> {
-  const teacher = await requireTeacher(
-    `/dashboard/playlists/${playlistId}/edit`
-  );
+  await requireContentCreator(`/dashboard/playlists/${playlistId}/edit`);
 
   const title = formData.get("title");
   const description = formData.get("description");
@@ -51,10 +49,10 @@ export async function updatePlaylist(
       price,
       is_published: publish,
     })
-    // Scoping to teacher_id (in addition to RLS) ensures a not-found/foreign
-    // id fails loudly here instead of silently updating zero rows.
+    // No app-level ownership filter here: RLS allows the original teacher
+    // *or* a fellow institution-member teacher to update it. A playlist
+    // that isn't visible to this user simply won't match, giving 0 rows.
     .eq("id", playlistId)
-    .eq("teacher_id", teacher.id)
     .select("id")
     .single();
 

@@ -1,11 +1,11 @@
-import { requireTeacher } from "@/lib/supabase/dal";
+import { requireContentCreator } from "@/lib/supabase/dal";
 
 export default async function PlaylistsLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  await requireTeacher("/dashboard/playlists");
+  await requireContentCreator("/dashboard/playlists");
 
   return <>{children}</>;
 }

@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { requireTeacher, getCategories } from "@/lib/supabase/dal";
+import { requireContentCreator, getCategories } from "@/lib/supabase/dal";
 import { EditCourseForm } from "./edit-course-form";
 
 export default async function EditCoursePage({
@@ -9,16 +9,17 @@ export default async function EditCoursePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const teacher = await requireTeacher(`/dashboard/courses/${id}/edit`);
+  await requireContentCreator(`/dashboard/courses/${id}/edit`);
 
   const supabase = await createClient();
+  // No app-level ownership filter: RLS already limits this to the course's
+  // own teacher or a fellow institution-member teacher.
   const { data: course } = await supabase
     .from("course")
     .select(
       "id, title, description, category_id, price, thumbnail_url, is_published"
     )
     .eq("id", id)
-    .eq("teacher_id", teacher.id)
     .single();
 
   if (!course) {

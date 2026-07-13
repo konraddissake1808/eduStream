@@ -1,11 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { signup } from "./actions";
+
+type Role = "student" | "teacher" | "institution";
 
 export default function SignupPage() {
   const [state, action, pending] = useActionState(signup, undefined);
+  const [role, setRole] = useState<Role>("student");
 
   if (state && "success" in state) {
     return (
@@ -31,7 +34,7 @@ export default function SignupPage() {
         <form action={action} className="mt-8 flex flex-col gap-4">
           <div className="flex flex-col gap-1">
             <label htmlFor="fullName" className="text-sm font-medium">
-              Full name
+              {role === "institution" ? "Institution name" : "Full name"}
             </label>
             <input
               id="fullName"
@@ -95,13 +98,30 @@ export default function SignupPage() {
                   type="radio"
                   name="role"
                   value="student"
-                  defaultChecked
+                  checked={role === "student"}
+                  onChange={() => setRole("student")}
                 />
                 Student
               </label>
               <label className="flex items-center gap-2 text-sm">
-                <input type="radio" name="role" value="teacher" />
+                <input
+                  type="radio"
+                  name="role"
+                  value="teacher"
+                  checked={role === "teacher"}
+                  onChange={() => setRole("teacher")}
+                />
                 Teacher
+              </label>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="radio"
+                  name="role"
+                  value="institution"
+                  checked={role === "institution"}
+                  onChange={() => setRole("institution")}
+                />
+                Institution
               </label>
             </div>
           </fieldset>

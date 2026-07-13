@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { requireTeacher } from "@/lib/supabase/dal";
+import { requireContentCreator } from "@/lib/supabase/dal";
 import { slugify, withRandomSuffix } from "@/lib/slugify";
 
 export type PlaylistFormState = { error: string } | undefined;
@@ -11,7 +11,7 @@ export async function createPlaylist(
   _prevState: PlaylistFormState,
   formData: FormData
 ): Promise<PlaylistFormState> {
-  const teacher = await requireTeacher("/dashboard/playlists/new");
+  const creator = await requireContentCreator("/dashboard/playlists/new");
 
   const title = formData.get("title");
   const description = formData.get("description");
@@ -19,6 +19,16 @@ export async function createPlaylist(
   const priceRaw = formData.get("price");
   const thumbnailUrl = formData.get("thumbnailUrl");
   const publish = formData.get("publish") === "on";
+  const institutionIdRaw = formData.get("institutionId");
+
+  // Institution accounts always post as themselves. Teachers may attribute
+  // the playlist to an institution they belong to (RLS re-validates this).
+  const institutionId =
+    creator.role === "institution"
+      ? creator.id
+      : typeof institutionIdRaw === "string" && institutionIdRaw
+        ? institutionIdRaw
+        : null;
 
   if (typeof title !== "string" || !title.trim()) {
     return { error: "Title is required." };
@@ -38,7 +48,8 @@ export async function createPlaylist(
     supabase
       .from("playlist")
       .insert({
-        teacher_id: teacher.id,
+        teacher_id: creator.id,
+        institution_id: institutionId,
         category_id:
           typeof categoryId === "string" && categoryId ? categoryId : null,
         title: title.trim(),

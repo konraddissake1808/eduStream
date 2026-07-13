@@ -38,14 +38,32 @@ export async function requireProfile(nextPath?: string) {
   return profile;
 }
 
-export async function requireTeacher(nextPath?: string) {
+export async function requireExactRole(
+  role: "student" | "teacher" | "institution",
+  nextPath?: string
+) {
   const profile = await requireProfile(nextPath);
 
-  if (profile.role !== "teacher") {
+  if (profile.role !== role) {
     redirect("/dashboard");
   }
 
   return profile;
+}
+
+// Teachers and institutions can both author courses/playlists.
+export async function requireContentCreator(nextPath?: string) {
+  const profile = await requireProfile(nextPath);
+
+  if (profile.role !== "teacher" && profile.role !== "institution") {
+    redirect("/dashboard");
+  }
+
+  return profile;
+}
+
+export async function requireInstitution(nextPath?: string) {
+  return requireExactRole("institution", nextPath);
 }
 
 export const getCategories = cache(async () => {
@@ -56,4 +74,21 @@ export const getCategories = cache(async () => {
     .order("name");
 
   return data ?? [];
+});
+
+// Institutions a teacher is a member of, used to attribute new content to
+// an institution instead of (or in addition to) themselves.
+export const getMyInstitutionMemberships = cache(async () => {
+  const profile = await getProfile();
+  if (!profile || profile.role !== "teacher") return [];
+
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("institution_member")
+    .select("institution:institution_id(id, full_name)")
+    .eq("teacher_id", profile.id);
+
+  return (data ?? []) as unknown as {
+    institution: { id: string; full_name: string | null };
+  }[];
 });

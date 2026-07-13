@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { requireTeacher } from "@/lib/supabase/dal";
+import {
+  requireContentCreator,
+  getMyInstitutionMemberships,
+} from "@/lib/supabase/dal";
 
 type PlaylistRow = {
   id: string;
@@ -11,13 +14,25 @@ type PlaylistRow = {
 };
 
 export default async function PlaylistsPage() {
-  const teacher = await requireTeacher("/dashboard/playlists");
+  const creator = await requireContentCreator("/dashboard/playlists");
   const supabase = await createClient();
+
+  // Show content this account authored directly, plus anything attributed
+  // to an institution it's part of (as the institution itself, or as one
+  // of that institution's member teachers).
+  const institutionIds =
+    creator.role === "institution"
+      ? [creator.id]
+      : (await getMyInstitutionMemberships()).map((m) => m.institution.id);
+
+  const orFilter = institutionIds.length
+    ? `teacher_id.eq.${creator.id},institution_id.in.(${institutionIds.join(",")})`
+    : `teacher_id.eq.${creator.id}`;
 
   const { data } = await supabase
     .from("playlist")
     .select("id, title, price, is_published, category(name)")
-    .eq("teacher_id", teacher.id)
+    .or(orFilter)
     .order("created_at", { ascending: false });
 
   const playlists = (data ?? []) as unknown as PlaylistRow[];

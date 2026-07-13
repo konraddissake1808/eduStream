@@ -1,8 +1,11 @@
-import { getCategories } from "@/lib/supabase/dal";
+import { getCategories, getMyInstitutionMemberships } from "@/lib/supabase/dal";
 import { CourseForm } from "./course-form";
 
 export default async function NewCoursePage() {
-  const categories = await getCategories();
+  const [categories, memberships] = await Promise.all([
+    getCategories(),
+    getMyInstitutionMemberships(),
+  ]);
 
   return (
     <div className="mx-auto w-full max-w-xl px-4 py-12">
@@ -10,7 +13,10 @@ export default async function NewCoursePage() {
       <p className="mt-1 text-sm text-neutral-500">
         You can add modules and lessons after creating the course.
       </p>
-      <CourseForm categories={categories} />
+      <CourseForm
+        categories={categories}
+        institutions={memberships.map((m) => m.institution)}
+      />
     </div>
   );
 }
