@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { requireInstitution } from "@/lib/supabase/dal";
 import { removeMember } from "./actions";
+import { AddMemberForm } from "./add-member-form";
 
 type MemberRow = {
   id: string;
@@ -27,11 +28,21 @@ export default async function InstitutionMembersPage() {
         posted as {institution.full_name ?? "your institution"}.
       </p>
 
+      <div className="mt-8 rounded-lg border border-neutral-200 p-4">
+        <h2 className="text-sm font-semibold">Add a teacher</h2>
+        <p className="mt-1 text-xs text-neutral-500">
+          They need an existing teacher account with this email. They can
+          also join themselves from their dashboard&apos;s{" "}
+          <span className="font-medium">My institutions</span> page.
+        </p>
+        <div className="mt-3">
+          <AddMemberForm />
+        </div>
+      </div>
+
       {!members.length ? (
         <p className="mt-8 text-sm text-neutral-500">
-          No teachers have joined yet. Teachers can join from their
-          dashboard&apos;s{" "}
-          <span className="font-medium">My institutions</span> page.
+          No teachers have joined yet.
         </p>
       ) : (
         <ul className="mt-8 divide-y divide-neutral-200 rounded-lg border border-neutral-200">
