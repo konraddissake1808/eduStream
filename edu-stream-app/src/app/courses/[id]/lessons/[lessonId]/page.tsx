@@ -1,0 +1,68 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { resolveLessonVideoUrl } from "@/lib/video";
+
+type LessonDetail = {
+  id: string;
+  title: string;
+  description: string | null;
+  video_url: string;
+};
+
+export default async function LessonPage({
+  params,
+}: {
+  params: Promise<{ id: string; lessonId: string }>;
+}) {
+  const { id, lessonId } = await params;
+  const supabase = await createClient();
+
+  // RLS gates this exactly the same as visibility in the curriculum list
+  // (preview, enrolled, or owner/institution): if it comes back, it's
+  // playable.
+  const { data } = await supabase
+    .from("lesson")
+    .select("id, title, description, video_url, module:module_id(course_id)")
+    .eq("id", lessonId)
+    .single();
+
+  const lesson = data as unknown as
+    | (LessonDetail & { module: { course_id: string } | null })
+    | null;
+
+  if (!lesson || lesson.module?.course_id !== id) {
+    notFound();
+  }
+
+  const videoUrl = await resolveLessonVideoUrl(lesson.video_url);
+
+  return (
+    <div className="mx-auto w-full max-w-3xl px-4 py-12">
+      <Link href={`/courses/${id}`} className="text-sm text-neutral-500 underline">
+        &larr; Back to course
+      </Link>
+
+      <h1 className="mt-4 text-2xl font-semibold">{lesson.title}</h1>
+
+      {videoUrl ? (
+        // eslint-disable-next-line jsx-a11y/media-has-caption
+        <video
+          controls
+          src={videoUrl}
+          className="mt-4 w-full rounded-lg bg-black"
+        />
+      ) : (
+        <p className="mt-4 text-sm text-red-600">
+          This video isn&apos;t available right now.
+        </p>
+      )}
+
+      {lesson.description && (
+        <p className="mt-4 whitespace-pre-line text-sm text-neutral-700">
+          {lesson.description}
+        </p>
+      )}
+    </div>
+  );
+}

@@ -78,6 +78,12 @@ export default async function CoursesPage() {
                   {course.is_published ? "Published" : "Draft"}
                 </span>
                 <Link
+                  href={`/dashboard/courses/${course.id}/content`}
+                  className="text-sm font-medium underline"
+                >
+                  Content
+                </Link>
+                <Link
                   href={`/dashboard/courses/${course.id}/edit`}
                   className="text-sm font-medium underline"
                 >

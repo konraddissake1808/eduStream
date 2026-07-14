@@ -78,6 +78,12 @@ export default async function PlaylistsPage() {
                   {playlist.is_published ? "Published" : "Draft"}
                 </span>
                 <Link
+                  href={`/dashboard/playlists/${playlist.id}/content`}
+                  className="text-sm font-medium underline"
+                >
+                  Content
+                </Link>
+                <Link
                   href={`/dashboard/playlists/${playlist.id}/edit`}
                   className="text-sm font-medium underline"
                 >

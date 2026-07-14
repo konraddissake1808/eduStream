@@ -14,6 +14,9 @@ type CourseDetail = {
   teacher: { full_name: string | null } | null;
 };
 
+type LessonRow = { id: string; title: string; is_preview: boolean };
+type ModuleRow = { id: string; title: string; lesson: LessonRow[] };
+
 export default async function CourseDetailPage({
   params,
 }: {
@@ -25,7 +28,7 @@ export default async function CourseDetailPage({
   const { data } = await supabase
     .from("course")
     .select(
-      "id, title, description, price, teacher_id, category(name), teacher:profiles(full_name)"
+      "id, title, description, price, teacher_id, category(name), teacher:profiles!course_teacher_id_fkey(full_name)"
     )
     .eq("id", id)
     .single();
@@ -50,6 +53,18 @@ export default async function CourseDetailPage({
     isEnrolled = !!enrollment;
   }
 
+  // RLS only returns lessons this viewer can actually see (previews,
+  // enrolled students, or the owner/institution), so this list is safe
+  // to render as-is with no extra filtering.
+  const { data: moduleData } = await supabase
+    .from("module")
+    .select("id, title, lesson(id, title, is_preview)")
+    .eq("course_id", course.id)
+    .order("position")
+    .order("position", { referencedTable: "lesson" });
+
+  const modules = (moduleData ?? []) as unknown as ModuleRow[];
+
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-12">
       <h1 className="text-2xl font-semibold">{course.title}</h1>
@@ -64,6 +79,39 @@ export default async function CourseDetailPage({
         <p className="mt-6 whitespace-pre-line text-sm text-neutral-700">
           {course.description}
         </p>
+      )}
+
+      {modules.length > 0 && (
+        <div className="mt-8 flex flex-col gap-4">
+          <h2 className="text-sm font-semibold">Curriculum</h2>
+          {modules.map((module) => (
+            <div key={module.id}>
+              <p className="text-sm font-medium">{module.title}</p>
+              {module.lesson.length > 0 && (
+                <ul className="mt-2 divide-y divide-neutral-200 rounded-lg border border-neutral-200">
+                  {module.lesson.map((lesson) => (
+                    <li
+                      key={lesson.id}
+                      className="flex items-center justify-between px-4 py-2"
+                    >
+                      <Link
+                        href={`/courses/${course.id}/lessons/${lesson.id}`}
+                        className="text-sm underline"
+                      >
+                        {lesson.title}
+                      </Link>
+                      {lesson.is_preview && (
+                        <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs text-neutral-500">
+                          Preview
+                        </span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ))}
+        </div>
       )}
 
       <div className="mt-8">

@@ -14,7 +14,9 @@ export default async function CoursesCatalogPage() {
 
   const { data } = await supabase
     .from("course")
-    .select("id, title, price, category(name), teacher:profiles(full_name)")
+    .select(
+      "id, title, price, category(name), teacher:profiles!course_teacher_id_fkey(full_name)"
+    )
     .eq("is_published", true)
     .order("created_at", { ascending: false });
 

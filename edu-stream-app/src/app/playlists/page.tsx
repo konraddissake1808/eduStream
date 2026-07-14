@@ -14,7 +14,9 @@ export default async function PlaylistsCatalogPage() {
 
   const { data } = await supabase
     .from("playlist")
-    .select("id, title, price, category(name), teacher:profiles(full_name)")
+    .select(
+      "id, title, price, category(name), teacher:profiles!playlist_teacher_id_fkey(full_name)"
+    )
     .eq("is_published", true)
     .order("created_at", { ascending: false });
 
