@@ -1,11 +1,29 @@
 "use client";
 
+import { useState } from "react";
 import { useActionState } from "react";
 import { createLesson } from "./actions";
+import {
+  MAX_LESSON_VIDEO_BYTES,
+  MAX_LESSON_VIDEO_LABEL,
+} from "@/lib/video-constraints";
 
 export function AddLessonForm({ playlistId }: { playlistId: string }) {
   const boundAction = createLesson.bind(null, playlistId);
   const [state, action, pending] = useActionState(boundAction, undefined);
+  const [sizeError, setSizeError] = useState<string | null>(null);
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (file && file.size > MAX_LESSON_VIDEO_BYTES) {
+      setSizeError(
+        `That file is too large. Videos must be ${MAX_LESSON_VIDEO_LABEL} or smaller.`
+      );
+      e.target.value = "";
+    } else {
+      setSizeError(null);
+    }
+  }
 
   return (
     <form action={action} className="flex flex-col gap-3 rounded-md bg-neutral-50 p-3">
@@ -37,7 +55,7 @@ export function AddLessonForm({ playlistId }: { playlistId: string }) {
 
       <div className="flex flex-col gap-1">
         <label htmlFor="lesson-video" className="text-sm font-medium">
-          Video file
+          Video file (max {MAX_LESSON_VIDEO_LABEL})
         </label>
         <input
           id="lesson-video"
@@ -45,6 +63,7 @@ export function AddLessonForm({ playlistId }: { playlistId: string }) {
           type="file"
           accept="video/*"
           required
+          onChange={handleFileChange}
           className="text-sm"
         />
       </div>
@@ -54,11 +73,12 @@ export function AddLessonForm({ playlistId }: { playlistId: string }) {
         Free preview (visible without enrolling)
       </label>
 
+      {sizeError && <p className="text-sm text-red-600">{sizeError}</p>}
       {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
 
       <button
         type="submit"
-        disabled={pending}
+        disabled={pending || !!sizeError}
         className="self-start rounded-md bg-black px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
       >
         {pending ? "Uploading..." : "Add lesson"}

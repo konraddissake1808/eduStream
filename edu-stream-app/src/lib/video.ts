@@ -1,9 +1,16 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { MAX_LESSON_VIDEO_BYTES, MAX_LESSON_VIDEO_LABEL } from "@/lib/video-constraints";
 
 const LESSON_VIDEO_BUCKET = "lesson-videos";
 const SIGNED_URL_TTL_SECONDS = 60 * 60; // 1 hour, plenty for one viewing session
 
 export async function uploadLessonVideo(file: File, pathPrefix: string) {
+  // Client-side already checks this, but that's bypassable — this is the
+  // real gate. Also fails faster/clearer than letting Storage reject it.
+  if (file.size > MAX_LESSON_VIDEO_BYTES) {
+    throw new Error(`Video must be ${MAX_LESSON_VIDEO_LABEL} or smaller.`);
+  }
+
   const admin = createAdminClient();
   const extension = file.name.includes(".") ? file.name.split(".").pop() : "mp4";
   const path = `${pathPrefix}/${crypto.randomUUID()}.${extension}`;
