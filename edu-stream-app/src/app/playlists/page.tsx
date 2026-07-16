@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { formatPrice } from "@/lib/currency";
 
 type PlaylistRow = {
   id: string;
@@ -45,7 +46,7 @@ export default async function PlaylistsCatalogPage() {
                 {playlist.teacher?.full_name
                   ? ` · by ${playlist.teacher.full_name}`
                   : ""}{" "}
-                · {playlist.price > 0 ? `$${playlist.price}` : "Free"}
+                · {playlist.price > 0 ? formatPrice(playlist.price) : "Free"}
               </p>
             </li>
           ))}

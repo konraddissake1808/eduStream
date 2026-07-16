@@ -15,6 +15,7 @@ export async function removeMember(memberId: string) {
     .eq("institution_id", institution.id);
 
   revalidatePath("/dashboard/institution");
+  revalidatePath("/dashboard");
 }
 
 export type AddMemberState =
@@ -60,5 +61,6 @@ export async function addMemberByEmail(
   }
 
   revalidatePath("/dashboard/institution");
+  revalidatePath("/dashboard");
   return { success: true, name: teacher.full_name ?? email.trim() };
 }

@@ -4,6 +4,7 @@ import {
   requireContentCreator,
   getMyInstitutionMemberships,
 } from "@/lib/supabase/dal";
+import { formatPrice } from "@/lib/currency";
 
 type CourseRow = {
   id: string;
@@ -64,7 +65,7 @@ export default async function CoursesPage() {
                 <p className="text-sm font-medium">{course.title}</p>
                 <p className="text-xs text-neutral-500">
                   {course.category?.name ?? "Uncategorized"} ·{" "}
-                  {course.price > 0 ? `$${course.price}` : "Free"}
+                  {course.price > 0 ? formatPrice(course.price) : "Free"}
                 </p>
               </div>
               <div className="flex items-center gap-3">

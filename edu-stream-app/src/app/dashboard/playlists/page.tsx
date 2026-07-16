@@ -4,6 +4,7 @@ import {
   requireContentCreator,
   getMyInstitutionMemberships,
 } from "@/lib/supabase/dal";
+import { formatPrice } from "@/lib/currency";
 
 type PlaylistRow = {
   id: string;
@@ -64,7 +65,7 @@ export default async function PlaylistsPage() {
                 <p className="text-sm font-medium">{playlist.title}</p>
                 <p className="text-xs text-neutral-500">
                   {playlist.category?.name ?? "Uncategorized"} ·{" "}
-                  {playlist.price > 0 ? `$${playlist.price}` : "Free"}
+                  {playlist.price > 0 ? formatPrice(playlist.price) : "Free"}
                 </p>
               </div>
               <div className="flex items-center gap-3">

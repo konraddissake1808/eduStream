@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getProfile } from "@/lib/supabase/dal";
+import { formatPrice } from "@/lib/currency";
 import { EnrollButton } from "./enroll-button";
 
 type PlaylistDetail = {
@@ -88,7 +89,7 @@ export default async function PlaylistDetailPage({
           ? ` · by ${playlist.teacher.full_name}`
           : ""}
         {" · "}
-        {playlist.price > 0 ? `$${playlist.price}` : "Free"}
+        {playlist.price > 0 ? formatPrice(playlist.price) : "Free"}
       </p>
 
       {playlist.description && (

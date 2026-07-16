@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getProfile } from "@/lib/supabase/dal";
+import { formatPrice } from "@/lib/currency";
 import { EnrollButton } from "./enroll-button";
 
 type CourseDetail = {
@@ -88,7 +89,7 @@ export default async function CourseDetailPage({
         {course.category?.name ?? "Uncategorized"}
         {course.teacher?.full_name ? ` · by ${course.teacher.full_name}` : ""}
         {" · "}
-        {course.price > 0 ? `$${course.price}` : "Free"}
+        {course.price > 0 ? formatPrice(course.price) : "Free"}
       </p>
 
       {course.description && (

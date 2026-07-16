@@ -77,14 +77,14 @@ export function EditPlaylistForm({
 
       <div className="flex flex-col gap-1">
         <label htmlFor="price" className="text-sm font-medium">
-          Price (USD, 0 = free)
+          Price (CFA francs, 0 = free)
         </label>
         <input
           id="price"
           name="price"
           type="number"
           min="0"
-          step="0.01"
+          step="1"
           defaultValue={playlist.price}
           className="rounded-md border border-neutral-300 px-3 py-2 text-sm"
         />
