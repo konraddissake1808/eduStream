@@ -53,6 +53,22 @@ export default async function CourseDetailPage({
     isEnrolled = !!enrollment;
   }
 
+  // RLS already limits this to sessions the viewer is allowed to join
+  // (host, institution teammate, or enrolled student), so no need to
+  // gate the query itself on isOwner/isEnrolled.
+  let liveSession: { id: string; title: string } | null = null;
+  if (profile) {
+    const { data: live } = await supabase
+      .from("live_session")
+      .select("id, title")
+      .eq("course_id", course.id)
+      .eq("status", "live")
+      .order("started_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    liveSession = live;
+  }
+
   // RLS only returns lessons this viewer can actually see (previews,
   // enrolled students, or the owner/institution), so this list is safe
   // to render as-is with no extra filtering.
@@ -79,6 +95,20 @@ export default async function CourseDetailPage({
         <p className="mt-6 whitespace-pre-line text-sm text-neutral-700">
           {course.description}
         </p>
+      )}
+
+      {liveSession && (
+        <div className="mt-6 flex items-center justify-between rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+          <p className="text-sm font-medium text-red-700">
+            Live now &middot; {liveSession.title}
+          </p>
+          <Link
+            href={`/live/${liveSession.id}`}
+            className="rounded-full bg-red-600 px-3 py-1 text-xs font-medium text-white"
+          >
+            Join
+          </Link>
+        </div>
       )}
 
       {modules.length > 0 && (
