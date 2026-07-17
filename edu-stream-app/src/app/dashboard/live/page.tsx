@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Radio } from "lucide-react";
+import { Radio, Play } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import {
   requireContentCreator,
@@ -7,6 +7,16 @@ import {
 } from "@/lib/supabase/dal";
 
 type ContentRow = { id: string; title: string };
+
+type SessionRow = {
+  id: string;
+  title: string;
+  status: string;
+  started_at: string;
+  recording_status: string;
+  course: { title: string } | null;
+  playlist: { title: string } | null;
+};
 
 export default async function LiveSessionsHubPage() {
   const creator = await requireContentCreator("/dashboard/live");
@@ -40,6 +50,32 @@ export default async function LiveSessionsHubPage() {
   const courses = (courseRows ?? []) as ContentRow[];
   const playlists = (playlistRows ?? []) as ContentRow[];
 
+  const courseIds = courses.map((c) => c.id);
+  const playlistIds = playlists.map((p) => p.id);
+
+  let sessions: SessionRow[] = [];
+  if (courseIds.length || playlistIds.length) {
+    const filterParts = [];
+    if (courseIds.length) filterParts.push(`course_id.in.(${courseIds.join(",")})`);
+    if (playlistIds.length) filterParts.push(`playlist_id.in.(${playlistIds.join(",")})`);
+
+    const { data: sessionRows } = await supabase
+      .from("live_session")
+      .select(
+        "id, title, status, started_at, recording_status, course(title), playlist(title)"
+      )
+      .or(filterParts.join(","))
+      .order("started_at", { ascending: false })
+      .limit(10);
+
+    sessions = (sessionRows ?? []) as unknown as SessionRow[];
+  }
+
+  const liveNow = sessions.filter((s) => s.status === "live");
+  const recordings = sessions.filter(
+    (s) => s.status === "ended" && s.recording_status === "ready"
+  );
+
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-12">
       <h1 className="text-2xl font-semibold">Live Sessions</h1>
@@ -60,6 +96,12 @@ export default async function LiveSessionsHubPage() {
         </p>
       ) : (
         <div className="mt-8 flex flex-col gap-8">
+          {liveNow.length > 0 && (
+            <SessionSection title="Live now" sessions={liveNow} live />
+          )}
+          {recordings.length > 0 && (
+            <SessionSection title="Recent recordings" sessions={recordings} />
+          )}
           {courses.length > 0 && (
             <ContentSection
               title="Courses"
@@ -76,6 +118,59 @@ export default async function LiveSessionsHubPage() {
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+function SessionSection({
+  title,
+  sessions,
+  live,
+}: {
+  title: string;
+  sessions: SessionRow[];
+  live?: boolean;
+}) {
+  return (
+    <div>
+      <h2 className="text-sm font-semibold text-neutral-500">{title}</h2>
+      <ul className="mt-2 divide-y divide-neutral-200 rounded-lg border border-neutral-200">
+        {sessions.map((session) => (
+          <li
+            key={session.id}
+            className="flex items-center justify-between px-4 py-3"
+          >
+            <div>
+              <p className="text-sm font-medium">{session.title}</p>
+              <p className="text-xs text-neutral-500">
+                {session.course?.title ?? session.playlist?.title}
+                {" · "}
+                {new Date(session.started_at).toLocaleString()}
+              </p>
+            </div>
+            <Link
+              href={`/live/${session.id}`}
+              className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium text-white ${
+                live
+                  ? "bg-red-600 hover:bg-red-700"
+                  : "bg-indigo-600 hover:bg-indigo-700"
+              }`}
+            >
+              {live ? (
+                <>
+                  <Radio className="h-3 w-3" />
+                  Join
+                </>
+              ) : (
+                <>
+                  <Play className="h-3 w-3" />
+                  Watch recording
+                </>
+              )}
+            </Link>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
