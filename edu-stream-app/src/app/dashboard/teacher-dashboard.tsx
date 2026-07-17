@@ -1,8 +1,78 @@
 import Link from "next/link";
-import { Building2, ListVideo, Plus, Radio, Search, TrendingUp } from "lucide-react";
+import {
+  BookOpen,
+  Building2,
+  LayoutDashboard,
+  Library,
+  ListVideo,
+  Plus,
+  Radio,
+  Search,
+  TrendingUp,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { formatPrice } from "@/lib/currency";
 import { SidebarNavLink } from "./sidebar-nav-link";
+
+export function TeacherSidebar({
+  profile,
+}: {
+  profile: { full_name: string | null };
+}) {
+  return (
+    <aside className="flex w-full shrink-0 flex-col gap-6 border-b border-neutral-200 bg-neutral-50 px-4 py-6 md:w-64 md:border-b-0 md:border-r">
+      <div className="flex items-center gap-3 rounded-lg border border-neutral-200 bg-white p-3">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-semibold text-white">
+          {(profile.full_name ?? "T").charAt(0).toUpperCase()}
+        </div>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold">
+            {profile.full_name ?? "Teacher"}
+          </p>
+          <p className="text-xs text-neutral-500">Teacher</p>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <SidebarNavLink
+          href="/dashboard"
+          icon={<LayoutDashboard className="h-4 w-4" />}
+        >
+          Teacher Dashboard
+        </SidebarNavLink>
+        <SidebarNavLink href="/dashboard/courses" icon={<BookOpen className="h-4 w-4" />}>
+          My Courses
+        </SidebarNavLink>
+        <SidebarNavLink href="/dashboard/playlists" icon={<Library className="h-4 w-4" />}>
+          My Playlists
+        </SidebarNavLink>
+        <SidebarNavLink href="/dashboard/live" icon={<Radio className="h-4 w-4" />}>
+          Live Sessions
+        </SidebarNavLink>
+        <SidebarNavLink href="/courses" icon={<Search className="h-4 w-4" />}>
+          Browse Courses
+        </SidebarNavLink>
+        <SidebarNavLink href="/playlists" icon={<ListVideo className="h-4 w-4" />}>
+          Browse Playlists
+        </SidebarNavLink>
+        <SidebarNavLink
+          href="/dashboard/my-institutions"
+          icon={<Building2 className="h-4 w-4" />}
+        >
+          My Institutions
+        </SidebarNavLink>
+      </div>
+
+      <Link
+        href="/dashboard/courses/new"
+        className="mt-auto flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-3 py-2.5 text-sm font-medium text-white hover:bg-indigo-700"
+      >
+        <Plus className="h-4 w-4" />
+        Publish New Course
+      </Link>
+    </aside>
+  );
+}
 
 type CourseRow = {
   id: string;
@@ -74,47 +144,8 @@ export async function TeacherDashboard({
   const previewCourses = courses.slice(0, 3);
 
   return (
-    <div className="flex w-full flex-1 flex-col md:flex-row">
-      <aside className="flex w-full shrink-0 flex-col gap-6 border-b border-neutral-200 bg-neutral-50 px-4 py-6 md:w-64 md:border-b-0 md:border-r">
-        <div className="flex items-center gap-3 rounded-lg border border-neutral-200 bg-white p-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-semibold text-white">
-            {(profile.full_name ?? "T").charAt(0).toUpperCase()}
-          </div>
-          <div className="min-w-0">
-            <p className="truncate text-sm font-semibold">
-              {profile.full_name ?? "Teacher"}
-            </p>
-            <p className="text-xs text-neutral-500">Teacher</p>
-          </div>
-        </div>
-
-        <SidebarNavLink href="/dashboard" icon={<Radio className="h-4 w-4" />}>
-          Teacher Dashboard
-        </SidebarNavLink>
-        <SidebarNavLink href="/courses" icon={<Search className="h-4 w-4" />}>
-          Courses
-        </SidebarNavLink>
-        <SidebarNavLink href="/playlists" icon={<ListVideo className="h-4 w-4" />}>
-          Playlists
-        </SidebarNavLink>
-        <SidebarNavLink
-          href="/dashboard/my-institutions"
-          icon={<Building2 className="h-4 w-4" />}
-        >
-          My Institutions
-        </SidebarNavLink>
-
-        <Link
-          href="/dashboard/courses/new"
-          className="mt-auto flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-3 py-2.5 text-sm font-medium text-white hover:bg-indigo-700"
-        >
-          <Plus className="h-4 w-4" />
-          Publish New Course
-        </Link>
-      </aside>
-
-      <div className="flex-1 px-6 py-8 sm:px-10">
-        <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
+    <div className="flex-1 px-6 py-8 sm:px-10">
+      <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
           <div>
             <h1 className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-3xl font-bold text-transparent">
               Teacher Dashboard
@@ -236,7 +267,6 @@ export async function TeacherDashboard({
           </div>
         </div>
       </div>
-    </div>
   );
 }
 

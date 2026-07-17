@@ -20,7 +20,13 @@ export function SidebarNavLink({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const active = pathname === href;
+  // "/dashboard" itself needs an exact match (every dashboard route
+  // starts with it), but deeper hrefs like "/dashboard/courses" should
+  // also stay active on nested routes like "/dashboard/courses/x/content".
+  const active =
+    href === "/dashboard"
+      ? pathname === href
+      : pathname === href || pathname.startsWith(`${href}/`);
 
   return (
     <Link

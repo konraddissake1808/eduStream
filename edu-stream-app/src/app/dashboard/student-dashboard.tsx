@@ -3,6 +3,45 @@ import { BookOpen, ListVideo, Play, Radio, Search, Sparkles, Video } from "lucid
 import { createClient } from "@/lib/supabase/server";
 import { SidebarNavLink } from "./sidebar-nav-link";
 
+export function StudentSidebar({
+  profile,
+}: {
+  profile: { full_name: string | null };
+}) {
+  return (
+    <aside className="flex w-full shrink-0 flex-col gap-1 border-b border-neutral-200 bg-neutral-50 px-4 py-6 md:w-64 md:border-b-0 md:border-r">
+      <SidebarNavLink href="/dashboard" icon={<BookOpen className="h-4 w-4" />}>
+        Student Dashboard
+      </SidebarNavLink>
+      <SidebarNavLink href="/courses" icon={<Search className="h-4 w-4" />}>
+        Search Courses
+      </SidebarNavLink>
+      <SidebarNavLink href="/playlists" icon={<ListVideo className="h-4 w-4" />}>
+        Playlists
+      </SidebarNavLink>
+      <Link
+        href="/dashboard#recorded-classes"
+        className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100"
+      >
+        <Video className="h-4 w-4" />
+        My Learning
+      </Link>
+
+      <div className="mt-auto flex items-center gap-3 rounded-lg border border-neutral-200 bg-white p-3">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-semibold text-white">
+          {(profile.full_name ?? "S").charAt(0).toUpperCase()}
+        </div>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold">
+            {profile.full_name ?? "Student"}
+          </p>
+          <p className="text-xs text-neutral-500">Student</p>
+        </div>
+      </div>
+    </aside>
+  );
+}
+
 type ParentRef = { title: string; thumbnail_url: string | null } | null;
 type CategoryRef = { title: string; category: { name: string } | null } | null;
 
@@ -24,10 +63,8 @@ type RecordingRow = {
 };
 
 export async function StudentDashboard({
-  profile,
   categoryFilter,
 }: {
-  profile: { id: string; full_name: string | null };
   categoryFilter?: string;
 }) {
   const supabase = await createClient();
@@ -78,40 +115,8 @@ export async function StudentDashboard({
   const [featuredLive, ...restLive] = liveSessions;
 
   return (
-    <div className="flex w-full flex-1 flex-col md:flex-row">
-      <aside className="flex w-full shrink-0 flex-col gap-1 border-b border-neutral-200 bg-neutral-50 px-4 py-6 md:w-64 md:border-b-0 md:border-r">
-        <SidebarNavLink href="/dashboard" icon={<BookOpen className="h-4 w-4" />}>
-          Student Dashboard
-        </SidebarNavLink>
-        <SidebarNavLink href="/courses" icon={<Search className="h-4 w-4" />}>
-          Search Courses
-        </SidebarNavLink>
-        <SidebarNavLink href="/playlists" icon={<ListVideo className="h-4 w-4" />}>
-          Playlists
-        </SidebarNavLink>
-        <Link
-          href="#recorded-classes"
-          className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100"
-        >
-          <Video className="h-4 w-4" />
-          My Learning
-        </Link>
-
-        <div className="mt-auto flex items-center gap-3 rounded-lg border border-neutral-200 bg-white p-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-semibold text-white">
-            {(profile.full_name ?? "S").charAt(0).toUpperCase()}
-          </div>
-          <div className="min-w-0">
-            <p className="truncate text-sm font-semibold">
-              {profile.full_name ?? "Student"}
-            </p>
-            <p className="text-xs text-neutral-500">Student</p>
-          </div>
-        </div>
-      </aside>
-
-      <div className="flex-1 px-6 py-8 sm:px-10">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex-1 px-6 py-8 sm:px-10">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm font-semibold text-indigo-600">Overview</p>
           <form action="/courses" method="GET" className="w-full sm:max-w-sm">
             <div className="relative">
@@ -203,7 +208,6 @@ export async function StudentDashboard({
           )}
         </div>
       </div>
-    </div>
   );
 }
 
