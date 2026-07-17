@@ -48,7 +48,7 @@ export async function enrollInCourse(
       type: "enrollment",
       title: "New enrollment",
       body: `${profile.full_name ?? "A student"} enrolled in ${course.title}.`,
-      link: `/dashboard/courses/${courseId}/content`,
+      link: `/dashboard/courses/${courseId}/students`,
     });
   }
 

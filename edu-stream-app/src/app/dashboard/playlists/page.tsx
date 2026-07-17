@@ -85,6 +85,12 @@ export default async function PlaylistsPage() {
                   Content
                 </Link>
                 <Link
+                  href={`/dashboard/playlists/${playlist.id}/students`}
+                  className="text-sm font-medium underline"
+                >
+                  Students
+                </Link>
+                <Link
                   href={`/dashboard/playlists/${playlist.id}/live`}
                   className="text-sm font-medium underline"
                 >

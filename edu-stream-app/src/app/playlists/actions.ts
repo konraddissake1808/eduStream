@@ -48,7 +48,7 @@ export async function enrollInPlaylist(
       type: "enrollment",
       title: "New enrollment",
       body: `${profile.full_name ?? "A student"} enrolled in ${playlist.title}.`,
-      link: `/dashboard/playlists/${playlistId}/content`,
+      link: `/dashboard/playlists/${playlistId}/students`,
     });
   }
 

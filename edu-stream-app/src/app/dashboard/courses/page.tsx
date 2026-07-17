@@ -85,6 +85,12 @@ export default async function CoursesPage() {
                   Content
                 </Link>
                 <Link
+                  href={`/dashboard/courses/${course.id}/students`}
+                  className="text-sm font-medium underline"
+                >
+                  Students
+                </Link>
+                <Link
                   href={`/dashboard/courses/${course.id}/live`}
                   className="text-sm font-medium underline"
                 >
