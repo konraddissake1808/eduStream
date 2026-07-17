@@ -123,7 +123,7 @@ export default async function PlaylistDetailPage({
               >
                 <Link
                   href={`/playlists/${playlist.id}/lessons/${lesson.id}`}
-                  className="text-sm underline"
+                  className="text-sm text-indigo-600 hover:underline"
                 >
                   {lesson.title}
                 </Link>
@@ -148,7 +148,7 @@ export default async function PlaylistDetailPage({
         ) : !profile ? (
           <Link
             href={`/login?next=${encodeURIComponent(`/playlists/${playlist.id}`)}`}
-            className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white"
+            className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
           >
             Log in to enroll
           </Link>

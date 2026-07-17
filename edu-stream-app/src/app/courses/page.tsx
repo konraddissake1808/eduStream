@@ -44,7 +44,7 @@ export default async function CoursesCatalogPage({
           name="q"
           defaultValue={q ?? ""}
           placeholder="Search courses..."
-          className="w-full max-w-sm rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          className="w-full max-w-sm rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
         />
       </form>
 
@@ -60,7 +60,7 @@ export default async function CoursesCatalogPage({
             <li key={course.id} className="px-4 py-3">
               <Link
                 href={`/courses/${course.id}`}
-                className="text-sm font-medium underline"
+                className="text-sm font-medium text-indigo-600 hover:underline"
               >
                 {course.title}
               </Link>

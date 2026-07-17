@@ -15,7 +15,7 @@ export function EnrollButton({ playlistId }: { playlistId: string }) {
       <button
         type="submit"
         disabled={pending}
-        className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+        className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
       >
         {pending ? "Enrolling..." : "Enroll for free"}
       </button>

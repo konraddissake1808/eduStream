@@ -37,7 +37,7 @@ export default async function PlaylistsCatalogPage() {
             <li key={playlist.id} className="px-4 py-3">
               <Link
                 href={`/playlists/${playlist.id}`}
-                className="text-sm font-medium underline"
+                className="text-sm font-medium text-indigo-600 hover:underline"
               >
                 {playlist.title}
               </Link>

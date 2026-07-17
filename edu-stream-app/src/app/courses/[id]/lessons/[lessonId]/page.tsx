@@ -39,7 +39,10 @@ export default async function LessonPage({
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-12">
-      <Link href={`/courses/${id}`} className="text-sm text-neutral-500 underline">
+      <Link
+        href={`/courses/${id}`}
+        className="text-sm text-neutral-500 hover:text-indigo-600"
+      >
         &larr; Back to course
       </Link>
 
