@@ -4,6 +4,7 @@ import { requireProfile } from "@/lib/supabase/dal";
 import { reconcileRecordingStatus } from "@/lib/live-session";
 import { resolveRecordingUrl } from "@/lib/recordings";
 import { LiveRoomClient } from "./live-room";
+import { ProcessingIndicator } from "./processing-indicator";
 
 export default async function LiveSessionPage({
   params,
@@ -58,9 +59,10 @@ export default async function LiveSessionPage({
             className="mt-6 w-full rounded-lg border border-neutral-200"
           />
         )}
-        {recordingStatus === "processing" && (
-          <p className="mt-6 text-sm text-neutral-500">
-            The recording is still processing — check back shortly.
+        {recordingStatus === "processing" && <ProcessingIndicator />}
+        {recordingStatus === "failed" && (
+          <p className="mt-6 text-sm text-red-600">
+            This recording failed to process and isn&apos;t available.
           </p>
         )}
       </div>
