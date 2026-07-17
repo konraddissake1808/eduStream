@@ -59,7 +59,7 @@ export default async function Navbar() {
           </Link>
           <Link
             href="/signup"
-            className="rounded-md bg-black px-3 py-1.5 font-medium text-white"
+            className="rounded-md bg-indigo-600 px-3 py-1.5 font-medium text-white hover:bg-indigo-700"
           >
             Sign up
           </Link>
