@@ -3,6 +3,14 @@ import { getAuthUser, getProfile, getMyNotifications } from "@/lib/supabase/dal"
 import { logout } from "@/app/auth/actions";
 import { NotificationBell } from "./notification-bell";
 
+// Distinct per-role color so the badge is identifiable at a glance,
+// instead of every role looking the same in neutral gray.
+const ROLE_BADGE_STYLES: Record<string, string> = {
+  student: "bg-sky-100 text-sky-700",
+  teacher: "bg-violet-100 text-violet-700",
+  institution: "bg-amber-100 text-amber-700",
+};
+
 export default async function Navbar() {
   const user = await getAuthUser();
   const profile = user ? await getProfile() : null;
@@ -41,7 +49,11 @@ export default async function Navbar() {
           <span className="text-sm text-neutral-600">
             {profile?.full_name ?? user.email}
             {profile?.role && (
-              <span className="ml-2 rounded-full bg-neutral-100 px-2 py-0.5 text-xs capitalize text-neutral-500">
+              <span
+                className={`ml-2 rounded-full px-2 py-0.5 text-xs font-medium capitalize ${
+                  ROLE_BADGE_STYLES[profile.role] ?? "bg-neutral-100 text-neutral-500"
+                }`}
+              >
                 {profile.role}
               </span>
             )}
