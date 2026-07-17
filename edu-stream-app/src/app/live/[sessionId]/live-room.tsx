@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { LiveKitRoom, VideoConference } from "@livekit/components-react";
 import "@livekit/components-styles";
 import { getLiveSessionToken, endLiveSession } from "./actions";
+import { VideoConferenceErrorBoundary } from "./video-conference-error-boundary";
 
 export function LiveRoomClient({
   sessionId,
@@ -93,7 +94,9 @@ export function LiveRoomClient({
           onDisconnected={() => router.push("/dashboard")}
           style={{ height: "100%" }}
         >
-          <VideoConference />
+          <VideoConferenceErrorBoundary>
+            <VideoConference />
+          </VideoConferenceErrorBoundary>
         </LiveKitRoom>
       </div>
     </div>
