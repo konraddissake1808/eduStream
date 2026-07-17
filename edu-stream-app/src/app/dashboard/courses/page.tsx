@@ -44,7 +44,7 @@ export default async function CoursesPage() {
         <h1 className="text-2xl font-semibold">Your courses</h1>
         <Link
           href="/dashboard/courses/new"
-          className="rounded-md bg-black px-3 py-1.5 text-sm font-medium text-white"
+          className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700"
         >
           New course
         </Link>

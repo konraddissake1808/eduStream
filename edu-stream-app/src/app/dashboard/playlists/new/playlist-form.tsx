@@ -25,7 +25,7 @@ export function PlaylistForm({
           id="title"
           name="title"
           required
-          className="rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          className="rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
         />
       </div>
 
@@ -37,7 +37,7 @@ export function PlaylistForm({
           id="description"
           name="description"
           rows={4}
-          className="rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          className="rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
         />
       </div>
 
@@ -49,7 +49,7 @@ export function PlaylistForm({
           id="categoryId"
           name="categoryId"
           defaultValue=""
-          className="rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          className="rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
         >
           <option value="">No category</option>
           {categories.map((category) => (
@@ -71,7 +71,7 @@ export function PlaylistForm({
           min="0"
           step="1"
           defaultValue="0"
-          className="rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          className="rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
         />
       </div>
 
@@ -84,7 +84,7 @@ export function PlaylistForm({
           name="thumbnailUrl"
           type="url"
           placeholder="https://..."
-          className="rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          className="rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
         />
       </div>
 
@@ -97,7 +97,7 @@ export function PlaylistForm({
             id="institutionId"
             name="institutionId"
             defaultValue=""
-            className="rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            className="rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           >
             <option value="">Myself</option>
             {institutions.map((institution) => (
@@ -110,7 +110,7 @@ export function PlaylistForm({
       )}
 
       <label className="flex items-center gap-2 text-sm">
-        <input type="checkbox" name="publish" />
+        <input type="checkbox" name="publish" className="accent-indigo-600" />
         Publish immediately
       </label>
 
@@ -119,7 +119,7 @@ export function PlaylistForm({
       <button
         type="submit"
         disabled={pending}
-        className="mt-2 rounded-md bg-black px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+        className="mt-2 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
       >
         {pending ? "Creating..." : "Create playlist"}
       </button>

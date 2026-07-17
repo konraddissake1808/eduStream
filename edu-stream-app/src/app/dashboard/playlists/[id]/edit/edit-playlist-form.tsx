@@ -39,7 +39,7 @@ export function EditPlaylistForm({
           name="title"
           required
           defaultValue={playlist.title}
-          className="rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          className="rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
         />
       </div>
 
@@ -52,7 +52,7 @@ export function EditPlaylistForm({
           name="description"
           rows={4}
           defaultValue={playlist.description ?? ""}
-          className="rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          className="rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
         />
       </div>
 
@@ -64,7 +64,7 @@ export function EditPlaylistForm({
           id="categoryId"
           name="categoryId"
           defaultValue={playlist.category_id ?? ""}
-          className="rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          className="rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
         >
           <option value="">No category</option>
           {categories.map((category) => (
@@ -86,7 +86,7 @@ export function EditPlaylistForm({
           min="0"
           step="1"
           defaultValue={playlist.price}
-          className="rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          className="rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
         />
       </div>
 
@@ -100,7 +100,7 @@ export function EditPlaylistForm({
           type="url"
           placeholder="https://..."
           defaultValue={playlist.thumbnail_url ?? ""}
-          className="rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          className="rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
         />
       </div>
 
@@ -109,6 +109,7 @@ export function EditPlaylistForm({
           type="checkbox"
           name="publish"
           defaultChecked={playlist.is_published}
+          className="accent-indigo-600"
         />
         Published
       </label>
@@ -118,7 +119,7 @@ export function EditPlaylistForm({
       <button
         type="submit"
         disabled={pending}
-        className="mt-2 rounded-md bg-black px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+        className="mt-2 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
       >
         {pending ? "Saving..." : "Save changes"}
       </button>

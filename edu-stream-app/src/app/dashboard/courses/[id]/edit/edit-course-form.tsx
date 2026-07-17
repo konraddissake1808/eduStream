@@ -39,7 +39,7 @@ export function EditCourseForm({
           name="title"
           required
           defaultValue={course.title}
-          className="rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          className="rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
         />
       </div>
 
@@ -52,7 +52,7 @@ export function EditCourseForm({
           name="description"
           rows={4}
           defaultValue={course.description ?? ""}
-          className="rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          className="rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
         />
       </div>
 
@@ -64,7 +64,7 @@ export function EditCourseForm({
           id="categoryId"
           name="categoryId"
           defaultValue={course.category_id ?? ""}
-          className="rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          className="rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
         >
           <option value="">No category</option>
           {categories.map((category) => (
@@ -86,7 +86,7 @@ export function EditCourseForm({
           min="0"
           step="1"
           defaultValue={course.price}
-          className="rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          className="rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
         />
       </div>
 
@@ -100,7 +100,7 @@ export function EditCourseForm({
           type="url"
           placeholder="https://..."
           defaultValue={course.thumbnail_url ?? ""}
-          className="rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          className="rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
         />
       </div>
 
@@ -109,6 +109,7 @@ export function EditCourseForm({
           type="checkbox"
           name="publish"
           defaultChecked={course.is_published}
+          className="accent-indigo-600"
         />
         Published
       </label>
@@ -118,7 +119,7 @@ export function EditCourseForm({
       <button
         type="submit"
         disabled={pending}
-        className="mt-2 rounded-md bg-black px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+        className="mt-2 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
       >
         {pending ? "Saving..." : "Save changes"}
       </button>

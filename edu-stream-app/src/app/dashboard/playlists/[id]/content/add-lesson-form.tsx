@@ -37,7 +37,7 @@ export function AddLessonForm({ playlistId }: { playlistId: string }) {
           id="lesson-title"
           name="title"
           required
-          className="rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          className="rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
         />
       </div>
 
@@ -49,7 +49,7 @@ export function AddLessonForm({ playlistId }: { playlistId: string }) {
           id="lesson-description"
           name="description"
           rows={2}
-          className="rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          className="rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
         />
       </div>
 
@@ -69,7 +69,7 @@ export function AddLessonForm({ playlistId }: { playlistId: string }) {
       </div>
 
       <label className="flex items-center gap-2 text-sm">
-        <input type="checkbox" name="isPreview" />
+        <input type="checkbox" name="isPreview" className="accent-indigo-600" />
         Free preview (visible without enrolling)
       </label>
 
@@ -79,7 +79,7 @@ export function AddLessonForm({ playlistId }: { playlistId: string }) {
       <button
         type="submit"
         disabled={pending || !!sizeError}
-        className="self-start rounded-md bg-black px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+        className="self-start rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
       >
         {pending ? "Uploading..." : "Add lesson"}
       </button>
