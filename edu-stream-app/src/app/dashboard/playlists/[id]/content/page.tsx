@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Play } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { requireContentCreator } from "@/lib/supabase/dal";
 import { AddLessonForm } from "./add-lesson-form";
@@ -52,11 +54,20 @@ export default async function PlaylistContentPage({
               className="flex items-center justify-between px-4 py-3"
             >
               <span className="text-sm">{lesson.title}</span>
-              {lesson.is_preview && (
-                <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs text-neutral-500">
-                  Preview
-                </span>
-              )}
+              <div className="flex items-center gap-2">
+                {lesson.is_preview && (
+                  <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs text-neutral-500">
+                    Preview
+                  </span>
+                )}
+                <Link
+                  href={`/playlists/${playlist.id}/lessons/${lesson.id}`}
+                  className="flex items-center gap-1 rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700 hover:bg-indigo-100"
+                >
+                  <Play className="h-3 w-3" />
+                  Watch
+                </Link>
+              </div>
             </li>
           ))}
         </ul>
