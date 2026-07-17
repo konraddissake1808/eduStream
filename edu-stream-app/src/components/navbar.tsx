@@ -1,10 +1,12 @@
 import Link from "next/link";
-import { getAuthUser, getProfile } from "@/lib/supabase/dal";
+import { getAuthUser, getProfile, getMyNotifications } from "@/lib/supabase/dal";
 import { logout } from "@/app/auth/actions";
+import { NotificationBell } from "./notification-bell";
 
 export default async function Navbar() {
   const user = await getAuthUser();
   const profile = user ? await getProfile() : null;
+  const notifications = user ? await getMyNotifications() : [];
 
   return (
     <nav className="flex h-16 w-full items-center justify-between border-b border-neutral-200 px-6">
@@ -35,6 +37,7 @@ export default async function Navbar() {
           <Link href="/dashboard" className="text-sm font-medium">
             Dashboard
           </Link>
+          <NotificationBell notifications={notifications} />
           <span className="text-sm text-neutral-600">
             {profile?.full_name ?? user.email}
             {profile?.role && (

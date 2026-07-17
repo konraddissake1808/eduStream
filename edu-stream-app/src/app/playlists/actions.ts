@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/supabase/dal";
+import { createNotification } from "@/lib/notifications";
 
 export type EnrollState = { error: string } | { success: true } | undefined;
 
@@ -17,7 +18,7 @@ export async function enrollInPlaylist(
   // Re-check the playlist server-side rather than trusting the client.
   const { data: playlist, error: playlistError } = await supabase
     .from("playlist")
-    .select("id, price, is_published")
+    .select("id, title, teacher_id, price, is_published")
     .eq("id", playlistId)
     .single();
 
@@ -35,9 +36,20 @@ export async function enrollInPlaylist(
     amount_paid: 0,
   });
 
-  // 23505 = unique violation, i.e. already enrolled: treat as a no-op.
-  if (error && error.code !== "23505") {
-    return { error: error.message };
+  // 23505 = unique violation, i.e. already enrolled: treat as a no-op
+  // (and skip notifying the teacher again for the same student).
+  if (error) {
+    if (error.code !== "23505") {
+      return { error: error.message };
+    }
+  } else {
+    await createNotification({
+      userId: playlist.teacher_id,
+      type: "enrollment",
+      title: "New enrollment",
+      body: `${profile.full_name ?? "A student"} enrolled in ${playlist.title}.`,
+      link: `/dashboard/playlists/${playlistId}/content`,
+    });
   }
 
   // Deliberately not calling revalidatePath here: it would refresh the

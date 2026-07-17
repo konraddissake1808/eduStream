@@ -92,3 +92,18 @@ export const getMyInstitutionMemberships = cache(async () => {
     institution: { id: string; full_name: string | null };
   }[];
 });
+
+export const getMyNotifications = cache(async () => {
+  const profile = await getProfile();
+  if (!profile) return [];
+
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("notification")
+    .select("id, type, title, body, link, read_at, created_at")
+    .eq("user_id", profile.id)
+    .order("created_at", { ascending: false })
+    .limit(20);
+
+  return data ?? [];
+});

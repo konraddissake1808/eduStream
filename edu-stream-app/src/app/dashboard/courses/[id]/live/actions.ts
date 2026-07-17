@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireContentCreator } from "@/lib/supabase/dal";
 import { newRoomName } from "@/lib/livekit";
 import { tryStartRecording } from "@/lib/live-session";
+import { createNotifications } from "@/lib/notifications";
 
 export type StartSessionState = { error: string } | undefined;
 
@@ -48,6 +49,23 @@ export async function startLiveSession(
   }
 
   await tryStartRecording(data.id, roomName);
+
+  const { data: enrollments } = await supabase
+    .from("enrollment")
+    .select("student_id")
+    .eq("course_id", courseId);
+
+  if (enrollments?.length) {
+    await createNotifications(
+      enrollments.map((enrollment) => ({
+        userId: enrollment.student_id,
+        type: "live_session_started" as const,
+        title: "Live session started",
+        body: `${creator.full_name ?? "Your teacher"} started a live session: ${title.trim()}.`,
+        link: `/live/${data.id}`,
+      }))
+    );
+  }
 
   redirect(`/live/${data.id}`);
 }
