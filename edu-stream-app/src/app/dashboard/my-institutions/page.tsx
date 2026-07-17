@@ -60,8 +60,8 @@ export default async function MyInstitutionsPage() {
                     type="submit"
                     className={
                       isMember
-                        ? "text-sm font-medium text-red-600 underline"
-                        : "rounded-md bg-black px-3 py-1.5 text-sm font-medium text-white"
+                        ? "text-sm font-medium text-red-600 hover:underline"
+                        : "rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700"
                     }
                   >
                     {isMember ? "Leave" : "Join"}
