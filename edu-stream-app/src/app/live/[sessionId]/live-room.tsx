@@ -92,6 +92,7 @@ export function LiveRoomClient({
           video={isHost}
           audio={isHost}
           onDisconnected={() => router.push("/dashboard")}
+          data-lk-theme="default"
           style={{ height: "100%" }}
         >
           <VideoConferenceErrorBoundary>
