@@ -1,10 +1,9 @@
 "use server";
 
-import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/supabase/dal";
 
-export type EnrollState = { error: string } | undefined;
+export type EnrollState = { error: string } | { success: true } | undefined;
 
 export async function enrollInCourse(
   courseId: string,
@@ -41,5 +40,10 @@ export async function enrollInCourse(
     return { error: error.message };
   }
 
-  redirect(`/courses/${courseId}`);
+  // Deliberately not calling revalidatePath here: it would refresh the
+  // parent page's server-rendered "already enrolled" branch immediately,
+  // unmounting this button before its own success confirmation ever
+  // gets to paint. The DB write already happened, so a later reload
+  // reflects it correctly regardless.
+  return { success: true };
 }
