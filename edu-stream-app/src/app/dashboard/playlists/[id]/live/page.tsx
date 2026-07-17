@@ -86,7 +86,7 @@ export default async function PlaylistLivePage({
               ) : session.recording_status === "ready" ? (
                 <Link
                   href={`/live/${session.id}`}
-                  className="rounded-full bg-neutral-900 px-3 py-1 text-xs font-medium text-white"
+                  className="rounded-full bg-indigo-600 px-3 py-1 text-xs font-medium text-white hover:bg-indigo-700"
                 >
                   Watch recording
                 </Link>

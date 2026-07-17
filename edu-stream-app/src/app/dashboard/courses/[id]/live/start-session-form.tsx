@@ -25,7 +25,7 @@ export function StartSessionForm({
           id="live-title"
           name="title"
           required
-          className="rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          className="rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
         />
       </div>
 
@@ -38,7 +38,7 @@ export function StartSessionForm({
             id="live-institutionId"
             name="institutionId"
             defaultValue=""
-            className="rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            className="rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           >
             <option value="">Myself</option>
             {institutions.map((institution) => (
