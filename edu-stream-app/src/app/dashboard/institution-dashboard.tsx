@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { Building2, Plus, Radio, TrendingUp, Users } from "lucide-react";
+import { Building2, ListVideo, Plus, Radio, Search, TrendingUp, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { formatPrice } from "@/lib/currency";
 import { logout } from "@/app/auth/actions";
 import { AddMemberForm } from "./institution/add-member-form";
 import { removeMember } from "./institution/actions";
+import { SidebarNavLink } from "./sidebar-nav-link";
 
 type CourseRow = {
   id: string;
@@ -114,10 +115,15 @@ export async function InstitutionDashboard({
   return (
     <div className="flex w-full flex-1 flex-col md:flex-row">
       <aside className="flex w-full shrink-0 flex-col gap-1 border-b border-neutral-200 bg-neutral-50 px-4 py-6 md:w-64 md:border-b-0 md:border-r">
-        <div className="flex items-center gap-2 rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white">
-          <Building2 className="h-4 w-4" />
+        <SidebarNavLink href="/dashboard" icon={<Building2 className="h-4 w-4" />}>
           Institution Dashboard
-        </div>
+        </SidebarNavLink>
+        <SidebarNavLink href="/courses" icon={<Search className="h-4 w-4" />}>
+          Courses
+        </SidebarNavLink>
+        <SidebarNavLink href="/playlists" icon={<ListVideo className="h-4 w-4" />}>
+          Playlists
+        </SidebarNavLink>
 
         <div className="mt-4 flex items-center gap-3 rounded-lg border border-neutral-200 bg-white p-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-semibold text-white">

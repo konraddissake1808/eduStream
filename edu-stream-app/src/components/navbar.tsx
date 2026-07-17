@@ -12,15 +12,22 @@ export default async function Navbar() {
         <Link href="/" className="text-lg font-semibold">
           eduStream
         </Link>
-        <Link href="/courses" className="text-sm font-medium text-neutral-600">
-          Courses
-        </Link>
-        <Link
-          href="/playlists"
-          className="text-sm font-medium text-neutral-600"
-        >
-          Playlists
-        </Link>
+        {!user && (
+          <>
+            <Link
+              href="/courses"
+              className="text-sm font-medium text-neutral-600"
+            >
+              Courses
+            </Link>
+            <Link
+              href="/playlists"
+              className="text-sm font-medium text-neutral-600"
+            >
+              Playlists
+            </Link>
+          </>
+        )}
       </div>
 
       {user ? (

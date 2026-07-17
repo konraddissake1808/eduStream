@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { BookOpen, Home, Play, Radio, Search, Sparkles, Video } from "lucide-react";
+import { BookOpen, ListVideo, Play, Radio, Search, Sparkles, Video } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { SidebarNavLink } from "./sidebar-nav-link";
 
 type ParentRef = { title: string; thumbnail_url: string | null } | null;
 type CategoryRef = { title: string; category: { name: string } | null } | null;
@@ -79,24 +80,15 @@ export async function StudentDashboard({
   return (
     <div className="flex w-full flex-1 flex-col md:flex-row">
       <aside className="flex w-full shrink-0 flex-col gap-1 border-b border-neutral-200 bg-neutral-50 px-4 py-6 md:w-64 md:border-b-0 md:border-r">
-        <div className="flex items-center gap-2 rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white">
-          <BookOpen className="h-4 w-4" />
+        <SidebarNavLink href="/dashboard" icon={<BookOpen className="h-4 w-4" />}>
           Student Dashboard
-        </div>
-        <Link
-          href="/"
-          className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100"
-        >
-          <Home className="h-4 w-4" />
-          Home
-        </Link>
-        <Link
-          href="/courses"
-          className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100"
-        >
-          <Search className="h-4 w-4" />
+        </SidebarNavLink>
+        <SidebarNavLink href="/courses" icon={<Search className="h-4 w-4" />}>
           Search Courses
-        </Link>
+        </SidebarNavLink>
+        <SidebarNavLink href="/playlists" icon={<ListVideo className="h-4 w-4" />}>
+          Playlists
+        </SidebarNavLink>
         <Link
           href="#recorded-classes"
           className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100"

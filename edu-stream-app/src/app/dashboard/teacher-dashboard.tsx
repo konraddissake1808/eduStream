@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { Building2, Plus, Radio, TrendingUp } from "lucide-react";
+import { Building2, ListVideo, Plus, Radio, Search, TrendingUp } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { formatPrice } from "@/lib/currency";
+import { SidebarNavLink } from "./sidebar-nav-link";
 
 type CourseRow = {
   id: string;
@@ -87,18 +88,21 @@ export async function TeacherDashboard({
           </div>
         </div>
 
-        <div className="flex items-center gap-2 rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white">
-          <Radio className="h-4 w-4" />
+        <SidebarNavLink href="/dashboard" icon={<Radio className="h-4 w-4" />}>
           Teacher Dashboard
-        </div>
-
-        <Link
+        </SidebarNavLink>
+        <SidebarNavLink href="/courses" icon={<Search className="h-4 w-4" />}>
+          Courses
+        </SidebarNavLink>
+        <SidebarNavLink href="/playlists" icon={<ListVideo className="h-4 w-4" />}>
+          Playlists
+        </SidebarNavLink>
+        <SidebarNavLink
           href="/dashboard/my-institutions"
-          className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100"
+          icon={<Building2 className="h-4 w-4" />}
         >
-          <Building2 className="h-4 w-4" />
           My Institutions
-        </Link>
+        </SidebarNavLink>
 
         <Link
           href="/dashboard/courses/new"
