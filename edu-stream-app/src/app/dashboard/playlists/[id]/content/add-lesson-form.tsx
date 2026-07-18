@@ -27,8 +27,6 @@ export function AddLessonForm({ playlistId }: { playlistId: string }) {
 
   return (
     <form action={action} className="flex flex-col gap-3 rounded-md bg-neutral-50 p-3">
-      <p className="text-xs font-medium text-neutral-500">Add lesson</p>
-
       <div className="flex flex-col gap-1">
         <label htmlFor="lesson-title" className="text-sm font-medium">
           Title

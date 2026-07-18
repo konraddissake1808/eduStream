@@ -96,9 +96,13 @@ export default async function PlaylistContentPage({
         </p>
       )}
 
-      <div className="mt-8 rounded-lg border border-neutral-200 p-4">
-        <h2 className="text-sm font-semibold">Add lesson</h2>
-        <AddLessonForm playlistId={playlist.id} />
+      <div className="mt-8 rounded-lg border border-dashed border-neutral-300 p-4">
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+          Add lesson
+        </h3>
+        <div className="mt-3">
+          <AddLessonForm playlistId={playlist.id} />
+        </div>
       </div>
 
       <div className="mt-8 rounded-lg border border-neutral-200 p-4">
