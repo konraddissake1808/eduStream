@@ -16,6 +16,7 @@ type PlaylistDetail = {
 };
 
 type LessonRow = { id: string; title: string; is_preview: boolean };
+type PastLiveStreamRow = { id: string; title: string; ended_at: string | null };
 
 export default async function PlaylistDetailPage({
   params,
@@ -80,6 +81,19 @@ export default async function PlaylistDetailPage({
 
   const lessons = (lessonData ?? []) as unknown as LessonRow[];
 
+  // RLS limits this to sessions the viewer is allowed to see (host,
+  // institution teammate, or enrolled student) same as the live join above,
+  // so an unauthorized/anonymous visitor just sees an empty list.
+  const { data: pastLiveStreamRows } = await supabase
+    .from("live_session")
+    .select("id, title, ended_at")
+    .eq("playlist_id", playlist.id)
+    .eq("status", "ended")
+    .eq("recording_status", "ready")
+    .order("ended_at", { ascending: false });
+
+  const pastLiveStreams = (pastLiveStreamRows ?? []) as PastLiveStreamRow[];
+
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-12">
       <h1 className="text-2xl font-semibold">{playlist.title}</h1>
@@ -132,6 +146,34 @@ export default async function PlaylistDetailPage({
                     Preview
                   </span>
                 )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {pastLiveStreams.length > 0 && (
+        <div className="mt-8 flex flex-col gap-4">
+          <h2 className="text-sm font-semibold">Past live streams</h2>
+          <ul className="divide-y divide-neutral-200 rounded-lg border border-neutral-200">
+            {pastLiveStreams.map((session) => (
+              <li
+                key={session.id}
+                className="flex items-center justify-between px-4 py-2"
+              >
+                <div>
+                  <Link
+                    href={`/live/${session.id}`}
+                    className="text-sm text-indigo-600 hover:underline"
+                  >
+                    {session.title}
+                  </Link>
+                  {session.ended_at && (
+                    <p className="text-xs text-neutral-500">
+                      {new Date(session.ended_at).toLocaleDateString()}
+                    </p>
+                  )}
+                </div>
               </li>
             ))}
           </ul>
