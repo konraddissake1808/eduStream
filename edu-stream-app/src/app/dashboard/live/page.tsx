@@ -5,6 +5,7 @@ import {
   requireContentCreator,
   getMyInstitutionMemberships,
 } from "@/lib/supabase/dal";
+import { reconcilePendingRecordings } from "@/lib/live-session";
 
 type ContentRow = { id: string; title: string };
 
@@ -55,6 +56,8 @@ export default async function LiveSessionsHubPage() {
 
   let sessions: SessionRow[] = [];
   if (courseIds.length || playlistIds.length) {
+    await reconcilePendingRecordings({ courseIds, playlistIds });
+
     const filterParts = [];
     if (courseIds.length) filterParts.push(`course_id.in.(${courseIds.join(",")})`);
     if (playlistIds.length) filterParts.push(`playlist_id.in.(${playlistIds.join(",")})`);

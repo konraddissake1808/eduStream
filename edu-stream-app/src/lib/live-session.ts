@@ -73,3 +73,44 @@ export async function reconcileRecordingStatus(
 
   return resolved;
 }
+
+// Every page that lists finished recordings (course/playlist content pages,
+// the live hub, dashboards) filters on recording_status = 'ready', but that
+// column only ever updates via reconcileRecordingStatus, which used to run
+// solely on the single session's own /live/[id] page. A recording could
+// finish processing on LiveKit's side and just sit at 'processing' forever
+// if nobody happened to open that exact URL. Call this before any such
+// listing query so it self-heals instead. Written with the admin client:
+// this is a safe, idempotent sync against LiveKit's own egress status, not
+// something that needs to respect the caller's RLS visibility.
+export async function reconcilePendingRecordings({
+  courseIds = [],
+  playlistIds = [],
+}: {
+  courseIds?: string[];
+  playlistIds?: string[];
+}) {
+  const filterParts = [
+    courseIds.length ? `course_id.in.(${courseIds.join(",")})` : null,
+    playlistIds.length ? `playlist_id.in.(${playlistIds.join(",")})` : null,
+  ].filter((part): part is string => part !== null);
+
+  if (filterParts.length === 0) return;
+
+  const admin = createAdminClient();
+  const { data: pending } = await admin
+    .from("live_session")
+    .select("id, egress_id")
+    .or(filterParts.join(","))
+    .eq("status", "ended")
+    .eq("recording_status", "processing")
+    .not("egress_id", "is", null);
+
+  if (!pending?.length) return;
+
+  await Promise.all(
+    pending.map((session) =>
+      reconcileRecordingStatus(session.id, session.egress_id as string)
+    )
+  );
+}

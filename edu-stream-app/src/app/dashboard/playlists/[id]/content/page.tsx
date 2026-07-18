@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Play } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { requireContentCreator } from "@/lib/supabase/dal";
+import { reconcilePendingRecordings } from "@/lib/live-session";
 import { AddLessonForm } from "./add-lesson-form";
 
 type LessonRow = {
@@ -46,6 +47,8 @@ export default async function PlaylistContentPage({
     .order("position");
 
   const lessons = (data ?? []) as unknown as LessonRow[];
+
+  await reconcilePendingRecordings({ playlistIds: [id] });
 
   const { data: pastLiveStreamRows } = await supabase
     .from("live_session")

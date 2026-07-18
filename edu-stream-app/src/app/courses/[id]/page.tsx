@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getProfile } from "@/lib/supabase/dal";
 import { formatPrice } from "@/lib/currency";
+import { reconcilePendingRecordings } from "@/lib/live-session";
 import { EnrollButton } from "./enroll-button";
 
 type CourseDetail = {
@@ -82,6 +83,8 @@ export default async function CourseDetailPage({
     .order("position", { referencedTable: "lesson" });
 
   const modules = (moduleData ?? []) as unknown as ModuleRow[];
+
+  await reconcilePendingRecordings({ courseIds: [course.id] });
 
   // RLS limits this to sessions the viewer is allowed to see (host,
   // institution teammate, or enrolled student) same as the live join above,

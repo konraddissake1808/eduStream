@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { BookOpen, ListVideo, Play, Radio, Search, Sparkles, Video } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { reconcilePendingRecordings } from "@/lib/live-session";
 import { SidebarNavLink } from "./sidebar-nav-link";
 
 export function StudentSidebar({
@@ -99,31 +100,22 @@ export async function StudentDashboard({
 
   // RLS already limits both queries to sessions this student is allowed to
   // see (host, institution teammate, or enrolled student).
-  const [{ data: liveRows }, { data: recordingRows }, { data: enrollmentRows }] =
-    await Promise.all([
-      supabase
-        .from("live_session")
-        .select(
-          "id, title, host:profiles!live_session_host_id_fkey(full_name), course(title, thumbnail_url), playlist(title, thumbnail_url)"
-        )
-        .eq("status", "live")
-        .order("started_at", { ascending: false })
-        .limit(3),
-      supabase
-        .from("live_session")
-        .select(
-          "id, title, ended_at, host:profiles!live_session_host_id_fkey(full_name), course(title, category(name)), playlist(title, category(name))"
-        )
-        .eq("recording_status", "ready")
-        .order("ended_at", { ascending: false }),
-      supabase
-        .from("enrollment")
-        .select("course_id, playlist_id")
-        .eq("student_id", studentId),
-    ]);
+  const [{ data: liveRows }, { data: enrollmentRows }] = await Promise.all([
+    supabase
+      .from("live_session")
+      .select(
+        "id, title, host:profiles!live_session_host_id_fkey(full_name), course(title, thumbnail_url), playlist(title, thumbnail_url)"
+      )
+      .eq("status", "live")
+      .order("started_at", { ascending: false })
+      .limit(3),
+    supabase
+      .from("enrollment")
+      .select("course_id, playlist_id")
+      .eq("student_id", studentId),
+  ]);
 
   const liveSessions = (liveRows ?? []) as unknown as LiveRow[];
-  const recordings = (recordingRows ?? []) as unknown as RecordingRow[];
 
   const courseIds = (enrollmentRows ?? [])
     .map((e) => e.course_id)
@@ -132,10 +124,23 @@ export async function StudentDashboard({
     .map((e) => e.playlist_id)
     .filter((v): v is string => !!v);
 
+  // A recording only ever flips from "processing" to "ready" via
+  // reconciliation, which used to only run on that one session's own
+  // /live/[id] page. Self-heal here too, so a student browsing the
+  // dashboard doesn't need to have happened to open that exact URL.
+  await reconcilePendingRecordings({ courseIds, playlistIds });
+
   // Regular lesson videos from enrolled content, so "Recorded Classes"
   // isn't limited to live-session recordings only.
-  const [{ data: courseModuleRows }, { data: playlistLessonRows }] =
+  const [{ data: recordingRows }, { data: courseModuleRows }, { data: playlistLessonRows }] =
     await Promise.all([
+      supabase
+        .from("live_session")
+        .select(
+          "id, title, ended_at, host:profiles!live_session_host_id_fkey(full_name), course(title, category(name)), playlist(title, category(name))"
+        )
+        .eq("recording_status", "ready")
+        .order("ended_at", { ascending: false }),
       courseIds.length
         ? supabase
             .from("module")
@@ -152,6 +157,7 @@ export async function StudentDashboard({
         : Promise.resolve({ data: [] as PlaylistLessonRow[] }),
     ]);
 
+  const recordings = (recordingRows ?? []) as unknown as RecordingRow[];
   const courseModules = (courseModuleRows ?? []) as unknown as CourseModuleLessonRow[];
   const playlistLessons = (playlistLessonRows ?? []) as unknown as PlaylistLessonRow[];
 

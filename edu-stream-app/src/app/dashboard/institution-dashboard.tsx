@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { formatPrice } from "@/lib/currency";
+import { reconcilePendingRecordings } from "@/lib/live-session";
 import { logout } from "@/app/auth/actions";
 import { AddMemberForm } from "./institution/add-member-form";
 import { removeMember } from "./institution/actions";
@@ -166,6 +167,8 @@ export async function InstitutionDashboard({
 
   // Recorded live streams + regular lesson videos across every course/
   // playlist the institution owns, directly or via a member teacher.
+  await reconcilePendingRecordings({ courseIds, playlistIds });
+
   const recordingFilterParts = [
     courseIds.length ? `course_id.in.(${courseIds.join(",")})` : null,
     playlistIds.length ? `playlist_id.in.(${playlistIds.join(",")})` : null,

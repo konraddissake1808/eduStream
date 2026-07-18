@@ -5,6 +5,7 @@ import {
   requireContentCreator,
   getMyInstitutionMemberships,
 } from "@/lib/supabase/dal";
+import { reconcilePendingRecordings } from "@/lib/live-session";
 import { StartSessionForm } from "./start-session-form";
 
 type SessionRow = {
@@ -36,6 +37,8 @@ export default async function CourseLivePage({
   if (!course) {
     notFound();
   }
+
+  await reconcilePendingRecordings({ courseIds: [id] });
 
   const [{ data }, memberships] = await Promise.all([
     supabase

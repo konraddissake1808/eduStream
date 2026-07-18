@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getProfile } from "@/lib/supabase/dal";
 import { formatPrice } from "@/lib/currency";
+import { reconcilePendingRecordings } from "@/lib/live-session";
 import { EnrollButton } from "./enroll-button";
 
 type PlaylistDetail = {
@@ -80,6 +81,8 @@ export default async function PlaylistDetailPage({
     .order("position");
 
   const lessons = (lessonData ?? []) as unknown as LessonRow[];
+
+  await reconcilePendingRecordings({ playlistIds: [playlist.id] });
 
   // RLS limits this to sessions the viewer is allowed to see (host,
   // institution teammate, or enrolled student) same as the live join above,
