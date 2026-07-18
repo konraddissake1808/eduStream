@@ -239,7 +239,10 @@ export async function InstitutionDashboard({
     sortKey: l.created_at,
   }));
 
-  const libraryItems = [...recordingItems, ...courseLessonItems, ...playlistLessonItems]
+  const libraryLiveStreams = recordingItems
+    .sort((a, b) => b.sortKey.localeCompare(a.sortKey))
+    .slice(0, 8);
+  const libraryLessons = [...courseLessonItems, ...playlistLessonItems]
     .sort((a, b) => b.sortKey.localeCompare(a.sortKey))
     .slice(0, 8);
 
@@ -383,41 +386,38 @@ export async function InstitutionDashboard({
             playlist your institution owns, most recent first.
           </p>
 
-          {libraryItems.length === 0 ? (
+          {libraryLiveStreams.length === 0 && libraryLessons.length === 0 ? (
             <p className="mt-4 text-sm text-neutral-500">
               No recordings or lesson videos yet.
             </p>
           ) : (
-            <ul className="mt-4 divide-y divide-neutral-200 rounded-lg border border-neutral-200">
-              {libraryItems.map((item) => (
-                <li
-                  key={`${item.kind}-${item.id}`}
-                  className="flex items-center justify-between px-4 py-3"
-                >
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium">{item.title}</p>
-                      {item.kind === "live" && (
-                        <span className="rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-600">
-                          Recorded live
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-neutral-500">
-                      {item.category}
-                      {item.parentTitle ? ` · ${item.parentTitle}` : ""}
-                    </p>
-                  </div>
-                  <Link
-                    href={item.href}
-                    className="flex items-center gap-1 rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700 hover:bg-indigo-100"
-                  >
-                    <Play className="h-3 w-3" />
-                    Watch
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            <div className="mt-4 flex flex-col gap-8">
+              <div>
+                <h3 className="text-sm font-semibold text-neutral-500">
+                  Recorded Live Streams
+                </h3>
+                {libraryLiveStreams.length === 0 ? (
+                  <p className="mt-3 text-sm text-neutral-500">
+                    No recorded live streams yet.
+                  </p>
+                ) : (
+                  <LibraryItemList items={libraryLiveStreams} />
+                )}
+              </div>
+
+              <div>
+                <h3 className="text-sm font-semibold text-neutral-500">
+                  Lesson Videos
+                </h3>
+                {libraryLessons.length === 0 ? (
+                  <p className="mt-3 text-sm text-neutral-500">
+                    No lesson videos yet.
+                  </p>
+                ) : (
+                  <LibraryItemList items={libraryLessons} />
+                )}
+              </div>
+            </div>
           )}
         </div>
 
@@ -473,6 +473,34 @@ export async function InstitutionDashboard({
           )}
         </div>
       </div>
+  );
+}
+
+function LibraryItemList({ items }: { items: LibraryItem[] }) {
+  return (
+    <ul className="mt-3 divide-y divide-neutral-200 rounded-lg border border-neutral-200">
+      {items.map((item) => (
+        <li
+          key={`${item.kind}-${item.id}`}
+          className="flex items-center justify-between px-4 py-3"
+        >
+          <div>
+            <p className="text-sm font-medium">{item.title}</p>
+            <p className="text-xs text-neutral-500">
+              {item.category}
+              {item.parentTitle ? ` · ${item.parentTitle}` : ""}
+            </p>
+          </div>
+          <Link
+            href={item.href}
+            className="flex items-center gap-1 rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700 hover:bg-indigo-100"
+          >
+            <Play className="h-3 w-3" />
+            Watch
+          </Link>
+        </li>
+      ))}
+    </ul>
   );
 }
 
