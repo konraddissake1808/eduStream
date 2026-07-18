@@ -75,9 +75,10 @@ type PlaylistLessonRow = {
   playlist: { id: string; title: string; category: { name: string } | null } | null;
 };
 
-// A single browsable item in "Recorded Classes": either a finished live
-// session recording, or a regular uploaded lesson from an enrolled
-// course/playlist. Unified so both can be filtered/displayed together.
+// A single browsable item shown in either the "Recorded Classes" or
+// "Lessons" section: a finished live session recording, or a regular
+// uploaded lesson from an enrolled course/playlist. Shared shape so both
+// kinds can reuse the same card and filtering logic.
 type LibraryItem = {
   id: string;
   title: string;
@@ -92,9 +93,11 @@ type LibraryItem = {
 export async function StudentDashboard({
   studentId,
   categoryFilter,
+  lessonCategoryFilter,
 }: {
   studentId: string;
   categoryFilter?: string;
+  lessonCategoryFilter?: string;
 }) {
   const supabase = await createClient();
 
@@ -196,22 +199,29 @@ export async function StudentDashboard({
     sortKey: l.created_at,
   }));
 
-  const libraryItems = [...recordingItems, ...courseLessonItems, ...playlistLessonItems].sort(
-    (a, b) => b.sortKey.localeCompare(a.sortKey)
+  const liveStreamItems = recordingItems.sort((a, b) => b.sortKey.localeCompare(a.sortKey));
+  const lessonItems = [...courseLessonItems, ...playlistLessonItems].sort((a, b) =>
+    b.sortKey.localeCompare(a.sortKey)
   );
 
-  const categories = Array.from(new Set(libraryItems.map((item) => item.category)));
+  const liveStreamCategories = Array.from(
+    new Set(liveStreamItems.map((item) => item.category))
+  );
+  const lessonCategories = Array.from(new Set(lessonItems.map((item) => item.category)));
 
-  const activeCategory = categoryFilter && categories.includes(categoryFilter)
-    ? categoryFilter
-    : null;
+  const activeCategory =
+    categoryFilter && liveStreamCategories.includes(categoryFilter) ? categoryFilter : null;
+  const activeLessonCategory =
+    lessonCategoryFilter && lessonCategories.includes(lessonCategoryFilter)
+      ? lessonCategoryFilter
+      : null;
 
-  const visibleItems = activeCategory
-    ? libraryItems.filter((item) => item.category === activeCategory)
-    : libraryItems;
-
-  const visibleLiveStreams = visibleItems.filter((item) => item.kind === "live");
-  const visibleLessons = visibleItems.filter((item) => item.kind === "lesson");
+  const visibleLiveStreams = activeCategory
+    ? liveStreamItems.filter((item) => item.category === activeCategory)
+    : liveStreamItems;
+  const visibleLessons = activeLessonCategory
+    ? lessonItems.filter((item) => item.category === activeLessonCategory)
+    : lessonItems;
 
   const [featuredLive, ...restLive] = liveSessions;
 
@@ -275,68 +285,79 @@ export async function StudentDashboard({
             <div>
               <h2 className="text-xl font-semibold">Recorded Classes</h2>
               <p className="mt-1 text-sm text-neutral-500">
-                Classes you have access to, recorded and ready to watch
-                anytime.
+                Live sessions you have access to, recorded and ready to
+                watch anytime.
               </p>
             </div>
-            {categories.length > 0 && (
+            {liveStreamCategories.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 <CategoryTab label="All" active={!activeCategory} href="/dashboard" />
-                {categories.map((name) => (
+                {liveStreamCategories.map((name) => (
                   <CategoryTab
                     key={name}
                     label={name}
                     active={activeCategory === name}
-                    href={`/dashboard?category=${encodeURIComponent(name)}`}
+                    href={`/dashboard?category=${encodeURIComponent(name)}#recorded-classes`}
                   />
                 ))}
               </div>
             )}
           </div>
 
-          {visibleItems.length === 0 ? (
+          {visibleLiveStreams.length === 0 ? (
             <p className="mt-4 text-sm text-neutral-500">
               No recorded classes {activeCategory ? "in this category " : ""}
-              yet. Live session recordings and lessons from courses or
-              playlists you&apos;re enrolled in will show up here.
+              yet. Once a live session you have access to ends and finishes
+              processing, it&apos;ll show up here.
             </p>
           ) : (
-            <div className="mt-4 flex flex-col gap-8">
-              <div>
-                <h3 className="text-sm font-semibold text-neutral-500">
-                  Recorded Live Streams
-                </h3>
-                {visibleLiveStreams.length === 0 ? (
-                  <p className="mt-3 text-sm text-neutral-500">
-                    No recorded live streams {activeCategory ? "in this category " : ""}
-                    yet.
-                  </p>
-                ) : (
-                  <div className="mt-3 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                    {visibleLiveStreams.map((item) => (
-                      <RecordingCard key={`${item.kind}-${item.id}`} item={item} />
-                    ))}
-                  </div>
-                )}
-              </div>
+            <div className="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {visibleLiveStreams.map((item) => (
+                <RecordingCard key={`${item.kind}-${item.id}`} item={item} />
+              ))}
+            </div>
+          )}
+        </div>
 
-              <div>
-                <h3 className="text-sm font-semibold text-neutral-500">
-                  Lesson Videos
-                </h3>
-                {visibleLessons.length === 0 ? (
-                  <p className="mt-3 text-sm text-neutral-500">
-                    No lesson videos {activeCategory ? "in this category " : ""}
-                    yet.
-                  </p>
-                ) : (
-                  <div className="mt-3 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                    {visibleLessons.map((item) => (
-                      <RecordingCard key={`${item.kind}-${item.id}`} item={item} />
-                    ))}
-                  </div>
-                )}
+        <div id="lessons" className="mt-12 scroll-mt-8">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-xl font-semibold">Lessons</h2>
+              <p className="mt-1 text-sm text-neutral-500">
+                Lesson videos from courses and playlists you&apos;re
+                enrolled in.
+              </p>
+            </div>
+            {lessonCategories.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                <CategoryTab
+                  label="All"
+                  active={!activeLessonCategory}
+                  href="/dashboard#lessons"
+                />
+                {lessonCategories.map((name) => (
+                  <CategoryTab
+                    key={name}
+                    label={name}
+                    active={activeLessonCategory === name}
+                    href={`/dashboard?lessonCategory=${encodeURIComponent(name)}#lessons`}
+                  />
+                ))}
               </div>
+            )}
+          </div>
+
+          {visibleLessons.length === 0 ? (
+            <p className="mt-4 text-sm text-neutral-500">
+              No lessons {activeLessonCategory ? "in this category " : ""}
+              yet. Lesson videos from courses or playlists you&apos;re
+              enrolled in will show up here.
+            </p>
+          ) : (
+            <div className="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {visibleLessons.map((item) => (
+                <RecordingCard key={`${item.kind}-${item.id}`} item={item} />
+              ))}
             </div>
           )}
         </div>

@@ -6,7 +6,7 @@ import { InstitutionDashboard } from "./institution-dashboard";
 export default async function DashboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ category?: string }>;
+  searchParams: Promise<{ category?: string; lessonCategory?: string }>;
 }) {
   const profile = await requireProfile("/dashboard");
 
@@ -15,8 +15,14 @@ export default async function DashboardPage({
   }
 
   if (profile.role === "student") {
-    const { category } = await searchParams;
-    return <StudentDashboard studentId={profile.id} categoryFilter={category} />;
+    const { category, lessonCategory } = await searchParams;
+    return (
+      <StudentDashboard
+        studentId={profile.id}
+        categoryFilter={category}
+        lessonCategoryFilter={lessonCategory}
+      />
+    );
   }
 
   return <InstitutionDashboard institution={profile} />;
