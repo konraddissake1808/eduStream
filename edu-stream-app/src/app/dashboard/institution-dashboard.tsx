@@ -5,6 +5,7 @@ import {
   LayoutDashboard,
   Library,
   ListVideo,
+  Play,
   Plus,
   Radio,
   Search,
@@ -90,6 +91,39 @@ type MemberRow = {
   teacher: { id: string; full_name: string | null } | null;
 };
 
+type RecordingSessionRow = {
+  id: string;
+  title: string;
+  ended_at: string | null;
+  course: { title: string; category: { name: string } | null } | null;
+  playlist: { title: string; category: { name: string } | null } | null;
+};
+
+type CourseModuleLessonRow = {
+  course: { id: string; title: string; category: { name: string } | null } | null;
+  lesson: { id: string; title: string; created_at: string }[];
+};
+
+type PlaylistLessonRow = {
+  id: string;
+  title: string;
+  created_at: string;
+  playlist: { id: string; title: string; category: { name: string } | null } | null;
+};
+
+// A single browsable item in the institution's content library: either a
+// finished live-session recording, or a regular uploaded lesson, from any
+// course/playlist the institution owns (directly or via a member teacher).
+type LibraryItem = {
+  id: string;
+  title: string;
+  category: string;
+  parentTitle: string | null;
+  href: string;
+  kind: "live" | "lesson";
+  sortKey: string;
+};
+
 export async function InstitutionDashboard({
   institution,
 }: {
@@ -100,7 +134,7 @@ export async function InstitutionDashboard({
 
   const [
     { data: courseRows },
-    { count: playlistCount },
+    { data: playlistRows },
     { count: activeStreamCount },
     { data: memberRows },
   ] = await Promise.all([
@@ -111,10 +145,7 @@ export async function InstitutionDashboard({
       )
       .or(orFilter)
       .order("created_at", { ascending: false }),
-    supabase
-      .from("playlist")
-      .select("id", { count: "exact", head: true })
-      .or(orFilter),
+    supabase.from("playlist").select("id").or(orFilter),
     supabase
       .from("live_session")
       .select("id", { count: "exact", head: true })
@@ -129,7 +160,85 @@ export async function InstitutionDashboard({
 
   const courses = (courseRows ?? []) as unknown as CourseRow[];
   const courseIds = courses.map((c) => c.id);
+  const playlistIds = (playlistRows ?? []).map((p) => p.id);
+  const playlistCount = playlistIds.length;
   const members = (memberRows ?? []) as unknown as MemberRow[];
+
+  // Recorded live streams + regular lesson videos across every course/
+  // playlist the institution owns, directly or via a member teacher.
+  const recordingFilterParts = [
+    courseIds.length ? `course_id.in.(${courseIds.join(",")})` : null,
+    playlistIds.length ? `playlist_id.in.(${playlistIds.join(",")})` : null,
+  ].filter((part): part is string => part !== null);
+
+  const [{ data: recordingRows }, { data: courseModuleRows }, { data: playlistLessonRows }] =
+    await Promise.all([
+      recordingFilterParts.length
+        ? supabase
+            .from("live_session")
+            .select(
+              "id, title, ended_at, course(title, category(name)), playlist(title, category(name))"
+            )
+            .or(recordingFilterParts.join(","))
+            .eq("status", "ended")
+            .eq("recording_status", "ready")
+            .order("ended_at", { ascending: false })
+        : Promise.resolve({ data: [] as RecordingSessionRow[] }),
+      courseIds.length
+        ? supabase
+            .from("module")
+            .select(
+              "course:course_id(id, title, category(name)), lesson(id, title, created_at)"
+            )
+            .in("course_id", courseIds)
+        : Promise.resolve({ data: [] as CourseModuleLessonRow[] }),
+      playlistIds.length
+        ? supabase
+            .from("lesson")
+            .select("id, title, created_at, playlist:playlist_id(id, title, category(name))")
+            .in("playlist_id", playlistIds)
+        : Promise.resolve({ data: [] as PlaylistLessonRow[] }),
+    ]);
+
+  const recordings = (recordingRows ?? []) as unknown as RecordingSessionRow[];
+  const courseModules = (courseModuleRows ?? []) as unknown as CourseModuleLessonRow[];
+  const playlistLessons = (playlistLessonRows ?? []) as unknown as PlaylistLessonRow[];
+
+  const recordingItems: LibraryItem[] = recordings.map((r) => ({
+    id: r.id,
+    title: r.title,
+    category: r.course?.category?.name ?? r.playlist?.category?.name ?? "Uncategorized",
+    parentTitle: r.course?.title ?? r.playlist?.title ?? null,
+    href: `/live/${r.id}`,
+    kind: "live" as const,
+    sortKey: r.ended_at ?? "",
+  }));
+
+  const courseLessonItems: LibraryItem[] = courseModules.flatMap((m) =>
+    m.lesson.map((l) => ({
+      id: l.id,
+      title: l.title,
+      category: m.course?.category?.name ?? "Uncategorized",
+      parentTitle: m.course?.title ?? null,
+      href: m.course ? `/courses/${m.course.id}/lessons/${l.id}` : "#",
+      kind: "lesson" as const,
+      sortKey: l.created_at,
+    }))
+  );
+
+  const playlistLessonItems: LibraryItem[] = playlistLessons.map((l) => ({
+    id: l.id,
+    title: l.title,
+    category: l.playlist?.category?.name ?? "Uncategorized",
+    parentTitle: l.playlist?.title ?? null,
+    href: l.playlist ? `/playlists/${l.playlist.id}/lessons/${l.id}` : "#",
+    kind: "lesson" as const,
+    sortKey: l.created_at,
+  }));
+
+  const libraryItems = [...recordingItems, ...courseLessonItems, ...playlistLessonItems]
+    .sort((a, b) => b.sortKey.localeCompare(a.sortKey))
+    .slice(0, 8);
 
   const { data: enrollmentRows } = courseIds.length
     ? await supabase
@@ -263,6 +372,51 @@ export async function InstitutionDashboard({
             </Link>
           </div>
         )}
+
+        <div className="mt-12">
+          <h2 className="text-xl font-semibold">Content Library</h2>
+          <p className="mt-1 text-sm text-neutral-500">
+            Recorded live streams and lesson videos across every course and
+            playlist your institution owns, most recent first.
+          </p>
+
+          {libraryItems.length === 0 ? (
+            <p className="mt-4 text-sm text-neutral-500">
+              No recordings or lesson videos yet.
+            </p>
+          ) : (
+            <ul className="mt-4 divide-y divide-neutral-200 rounded-lg border border-neutral-200">
+              {libraryItems.map((item) => (
+                <li
+                  key={`${item.kind}-${item.id}`}
+                  className="flex items-center justify-between px-4 py-3"
+                >
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium">{item.title}</p>
+                      {item.kind === "live" && (
+                        <span className="rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-600">
+                          Recorded live
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-neutral-500">
+                      {item.category}
+                      {item.parentTitle ? ` · ${item.parentTitle}` : ""}
+                    </p>
+                  </div>
+                  <Link
+                    href={item.href}
+                    className="flex items-center gap-1 rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700 hover:bg-indigo-100"
+                  >
+                    <Play className="h-3 w-3" />
+                    Watch
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
 
         <div className="mt-12">
           <h2 className="text-xl font-semibold">Authorized Personnel</h2>
