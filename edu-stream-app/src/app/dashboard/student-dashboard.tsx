@@ -210,6 +210,9 @@ export async function StudentDashboard({
     ? libraryItems.filter((item) => item.category === activeCategory)
     : libraryItems;
 
+  const visibleLiveStreams = visibleItems.filter((item) => item.kind === "live");
+  const visibleLessons = visibleItems.filter((item) => item.kind === "lesson");
+
   const [featuredLive, ...restLive] = liveSessions;
 
   return (
@@ -298,10 +301,42 @@ export async function StudentDashboard({
               playlists you&apos;re enrolled in will show up here.
             </p>
           ) : (
-            <div className="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {visibleItems.map((item) => (
-                <RecordingCard key={`${item.kind}-${item.id}`} item={item} />
-              ))}
+            <div className="mt-4 flex flex-col gap-8">
+              <div>
+                <h3 className="text-sm font-semibold text-neutral-500">
+                  Recorded Live Streams
+                </h3>
+                {visibleLiveStreams.length === 0 ? (
+                  <p className="mt-3 text-sm text-neutral-500">
+                    No recorded live streams {activeCategory ? "in this category " : ""}
+                    yet.
+                  </p>
+                ) : (
+                  <div className="mt-3 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                    {visibleLiveStreams.map((item) => (
+                      <RecordingCard key={`${item.kind}-${item.id}`} item={item} />
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <h3 className="text-sm font-semibold text-neutral-500">
+                  Lesson Videos
+                </h3>
+                {visibleLessons.length === 0 ? (
+                  <p className="mt-3 text-sm text-neutral-500">
+                    No lesson videos {activeCategory ? "in this category " : ""}
+                    yet.
+                  </p>
+                ) : (
+                  <div className="mt-3 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                    {visibleLessons.map((item) => (
+                      <RecordingCard key={`${item.kind}-${item.id}`} item={item} />
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -395,16 +430,9 @@ function RecordingCard({ item }: { item: LibraryItem }) {
         <Play className="h-8 w-8 text-white/70" />
       </div>
       <div className="p-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700">
-            {item.category}
-          </span>
-          {item.kind === "live" && (
-            <span className="rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-600">
-              Recorded live
-            </span>
-          )}
-        </div>
+        <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700">
+          {item.category}
+        </span>
         <p className="mt-2 truncate text-sm font-semibold">{item.title}</p>
         {item.parentTitle && (
           <p className="truncate text-xs text-neutral-500">{item.parentTitle}</p>
