@@ -62,55 +62,147 @@ type RecordingRow = {
   playlist: CategoryRef;
 };
 
+type CourseModuleLessonRow = {
+  course: { id: string; title: string; category: { name: string } | null } | null;
+  lesson: { id: string; title: string; created_at: string }[];
+};
+
+type PlaylistLessonRow = {
+  id: string;
+  title: string;
+  created_at: string;
+  playlist: { id: string; title: string; category: { name: string } | null } | null;
+};
+
+// A single browsable item in "Recorded Classes": either a finished live
+// session recording, or a regular uploaded lesson from an enrolled
+// course/playlist. Unified so both can be filtered/displayed together.
+type LibraryItem = {
+  id: string;
+  title: string;
+  category: string;
+  parentTitle: string | null;
+  hostName: string | null;
+  href: string;
+  kind: "live" | "lesson";
+  sortKey: string;
+};
+
 export async function StudentDashboard({
+  studentId,
   categoryFilter,
 }: {
+  studentId: string;
   categoryFilter?: string;
 }) {
   const supabase = await createClient();
 
   // RLS already limits both queries to sessions this student is allowed to
   // see (host, institution teammate, or enrolled student).
-  const [{ data: liveRows }, { data: recordingRows }] = await Promise.all([
-    supabase
-      .from("live_session")
-      .select(
-        "id, title, host:profiles!live_session_host_id_fkey(full_name), course(title, thumbnail_url), playlist(title, thumbnail_url)"
-      )
-      .eq("status", "live")
-      .order("started_at", { ascending: false })
-      .limit(3),
-    supabase
-      .from("live_session")
-      .select(
-        "id, title, ended_at, host:profiles!live_session_host_id_fkey(full_name), course(title, category(name)), playlist(title, category(name))"
-      )
-      .eq("recording_status", "ready")
-      .order("ended_at", { ascending: false }),
-  ]);
+  const [{ data: liveRows }, { data: recordingRows }, { data: enrollmentRows }] =
+    await Promise.all([
+      supabase
+        .from("live_session")
+        .select(
+          "id, title, host:profiles!live_session_host_id_fkey(full_name), course(title, thumbnail_url), playlist(title, thumbnail_url)"
+        )
+        .eq("status", "live")
+        .order("started_at", { ascending: false })
+        .limit(3),
+      supabase
+        .from("live_session")
+        .select(
+          "id, title, ended_at, host:profiles!live_session_host_id_fkey(full_name), course(title, category(name)), playlist(title, category(name))"
+        )
+        .eq("recording_status", "ready")
+        .order("ended_at", { ascending: false }),
+      supabase
+        .from("enrollment")
+        .select("course_id, playlist_id")
+        .eq("student_id", studentId),
+    ]);
 
   const liveSessions = (liveRows ?? []) as unknown as LiveRow[];
   const recordings = (recordingRows ?? []) as unknown as RecordingRow[];
 
-  const categories = Array.from(
-    new Set(
-      recordings.map(
-        (r) => r.course?.category?.name ?? r.playlist?.category?.name ?? "Uncategorized"
-      )
-    )
+  const courseIds = (enrollmentRows ?? [])
+    .map((e) => e.course_id)
+    .filter((v): v is string => !!v);
+  const playlistIds = (enrollmentRows ?? [])
+    .map((e) => e.playlist_id)
+    .filter((v): v is string => !!v);
+
+  // Regular lesson videos from enrolled content, so "Recorded Classes"
+  // isn't limited to live-session recordings only.
+  const [{ data: courseModuleRows }, { data: playlistLessonRows }] =
+    await Promise.all([
+      courseIds.length
+        ? supabase
+            .from("module")
+            .select(
+              "course:course_id(id, title, category(name)), lesson(id, title, created_at)"
+            )
+            .in("course_id", courseIds)
+        : Promise.resolve({ data: [] as CourseModuleLessonRow[] }),
+      playlistIds.length
+        ? supabase
+            .from("lesson")
+            .select("id, title, created_at, playlist:playlist_id(id, title, category(name))")
+            .in("playlist_id", playlistIds)
+        : Promise.resolve({ data: [] as PlaylistLessonRow[] }),
+    ]);
+
+  const courseModules = (courseModuleRows ?? []) as unknown as CourseModuleLessonRow[];
+  const playlistLessons = (playlistLessonRows ?? []) as unknown as PlaylistLessonRow[];
+
+  const recordingItems: LibraryItem[] = recordings.map((r) => ({
+    id: r.id,
+    title: r.title,
+    category: r.course?.category?.name ?? r.playlist?.category?.name ?? "Uncategorized",
+    parentTitle: r.course?.title ?? r.playlist?.title ?? null,
+    hostName: r.host?.full_name ?? "Host",
+    href: `/live/${r.id}`,
+    kind: "live",
+    sortKey: r.ended_at ?? "",
+  }));
+
+  const courseLessonItems: LibraryItem[] = courseModules.flatMap((m) =>
+    m.lesson.map((l) => ({
+      id: l.id,
+      title: l.title,
+      category: m.course?.category?.name ?? "Uncategorized",
+      parentTitle: m.course?.title ?? null,
+      hostName: null,
+      href: m.course ? `/courses/${m.course.id}/lessons/${l.id}` : "#",
+      kind: "lesson" as const,
+      sortKey: l.created_at,
+    }))
   );
+
+  const playlistLessonItems: LibraryItem[] = playlistLessons.map((l) => ({
+    id: l.id,
+    title: l.title,
+    category: l.playlist?.category?.name ?? "Uncategorized",
+    parentTitle: l.playlist?.title ?? null,
+    hostName: null,
+    href: l.playlist ? `/playlists/${l.playlist.id}/lessons/${l.id}` : "#",
+    kind: "lesson" as const,
+    sortKey: l.created_at,
+  }));
+
+  const libraryItems = [...recordingItems, ...courseLessonItems, ...playlistLessonItems].sort(
+    (a, b) => b.sortKey.localeCompare(a.sortKey)
+  );
+
+  const categories = Array.from(new Set(libraryItems.map((item) => item.category)));
 
   const activeCategory = categoryFilter && categories.includes(categoryFilter)
     ? categoryFilter
     : null;
 
-  const visibleRecordings = activeCategory
-    ? recordings.filter(
-        (r) =>
-          (r.course?.category?.name ?? r.playlist?.category?.name ?? "Uncategorized") ===
-          activeCategory
-      )
-    : recordings;
+  const visibleItems = activeCategory
+    ? libraryItems.filter((item) => item.category === activeCategory)
+    : libraryItems;
 
   const [featuredLive, ...restLive] = liveSessions;
 
@@ -193,16 +285,16 @@ export async function StudentDashboard({
             )}
           </div>
 
-          {visibleRecordings.length === 0 ? (
+          {visibleItems.length === 0 ? (
             <p className="mt-4 text-sm text-neutral-500">
               No recorded classes {activeCategory ? "in this category " : ""}
-              yet. Once a live session you have access to ends and finishes
-              processing, it&apos;ll show up here.
+              yet. Live session recordings and lessons from courses or
+              playlists you&apos;re enrolled in will show up here.
             </p>
           ) : (
             <div className="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {visibleRecordings.map((recording) => (
-                <RecordingCard key={recording.id} recording={recording} />
+              {visibleItems.map((item) => (
+                <RecordingCard key={`${item.kind}-${item.id}`} item={item} />
               ))}
             </div>
           )}
@@ -287,30 +379,33 @@ function LiveCard({
   );
 }
 
-function RecordingCard({ recording }: { recording: RecordingRow }) {
-  const parentTitle = recording.course?.title ?? recording.playlist?.title ?? null;
-  const category =
-    recording.course?.category?.name ?? recording.playlist?.category?.name ?? "Uncategorized";
-
+function RecordingCard({ item }: { item: LibraryItem }) {
   return (
     <Link
-      href={`/live/${recording.id}`}
+      href={item.href}
       className="block overflow-hidden rounded-xl border border-neutral-200 hover:border-neutral-300"
     >
       <div className="flex h-32 w-full items-center justify-center bg-gradient-to-br from-neutral-800 to-neutral-950">
         <Play className="h-8 w-8 text-white/70" />
       </div>
       <div className="p-4">
-        <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700">
-          {category}
-        </span>
-        <p className="mt-2 truncate text-sm font-semibold">{recording.title}</p>
-        {parentTitle && (
-          <p className="truncate text-xs text-neutral-500">{parentTitle}</p>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700">
+            {item.category}
+          </span>
+          {item.kind === "live" && (
+            <span className="rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-600">
+              Recorded live
+            </span>
+          )}
+        </div>
+        <p className="mt-2 truncate text-sm font-semibold">{item.title}</p>
+        {item.parentTitle && (
+          <p className="truncate text-xs text-neutral-500">{item.parentTitle}</p>
         )}
-        <p className="mt-2 truncate text-xs text-neutral-500">
-          {recording.host?.full_name ?? "Host"}
-        </p>
+        {item.hostName && (
+          <p className="mt-2 truncate text-xs text-neutral-500">{item.hostName}</p>
+        )}
       </div>
     </Link>
   );

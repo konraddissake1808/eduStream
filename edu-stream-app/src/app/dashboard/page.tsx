@@ -16,7 +16,7 @@ export default async function DashboardPage({
 
   if (profile.role === "student") {
     const { category } = await searchParams;
-    return <StudentDashboard categoryFilter={category} />;
+    return <StudentDashboard studentId={profile.id} categoryFilter={category} />;
   }
 
   return <InstitutionDashboard institution={profile} />;
