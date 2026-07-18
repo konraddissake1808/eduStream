@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/supabase/dal";
-import { createNotification } from "@/lib/notifications";
+import { createNotifications } from "@/lib/notifications";
 
 export type EnrollState = { error: string } | { success: true } | undefined;
 
@@ -18,7 +18,7 @@ export async function enrollInPlaylist(
   // Re-check the playlist server-side rather than trusting the client.
   const { data: playlist, error: playlistError } = await supabase
     .from("playlist")
-    .select("id, title, teacher_id, price, is_published")
+    .select("id, title, teacher_id, institution_id, price, is_published")
     .eq("id", playlistId)
     .single();
 
@@ -43,13 +43,24 @@ export async function enrollInPlaylist(
       return { error: error.message };
     }
   } else {
-    await createNotification({
-      userId: playlist.teacher_id,
-      type: "enrollment",
-      title: "New enrollment",
-      body: `${profile.full_name ?? "A student"} enrolled in ${playlist.title}.`,
-      link: `/dashboard/playlists/${playlistId}/students`,
-    });
+    // Notify the playlist's own teacher, and separately the institution it's
+    // attributed to (if any) — a member teacher's playlist still belongs to
+    // the institution's own enrollment tracking, so both should hear about it.
+    const recipientIds = new Set(
+      [playlist.teacher_id, playlist.institution_id].filter(
+        (id): id is string => !!id
+      )
+    );
+
+    await createNotifications(
+      [...recipientIds].map((userId) => ({
+        userId,
+        type: "enrollment" as const,
+        title: "New enrollment",
+        body: `${profile.full_name ?? "A student"} enrolled in ${playlist.title}.`,
+        link: `/dashboard/playlists/${playlistId}/students`,
+      }))
+    );
   }
 
   // Deliberately not calling revalidatePath here: it would refresh the
